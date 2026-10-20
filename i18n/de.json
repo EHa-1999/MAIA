@@ -567,5 +567,11 @@
  "{0} ruimtes deels buiten het archief": "{0} Räume teilweise außerhalb des Archivs",
  "{0} stappen": "{0} Schritte",
  "{0} telefoongesprekken nog niet beoordeeld": "{0} Telefongespräche noch nicht geprüft",
- "{0} vastgelegd": "{0} erfasst"
+ "{0} vastgelegd": "{0} erfasst",
+ "Alles selecteren": "Alle auswählen",
+ "{0} van {1} geselecteerd": "{0} von {1} ausgewählt",
+ "De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.": "Die Bedenkzeit ist vorbei. Persönlich machen ist nur auf Antrag beim Records Manager möglich.",
+ "Register: gesprek beoordeeld als zakelijk": "Register: Gespräch als dienstlich beurteilt",
+ "niets in het archief tot je de berichten vastlegt": "nichts im Archiv, bis Sie die Nachrichten erfassen",
+ "Zakelijk. Selecteer de zakelijke berichten en leg ze vast.": "Dienstlich. Wählen Sie die dienstlichen Nachrichten aus und erfassen Sie sie."
 }

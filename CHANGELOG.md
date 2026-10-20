@@ -2,6 +2,11 @@
 
 Het versienummer staat in `VERSION`. Bij elke nieuwe versie: nummer ophogen, hier een regel toevoegen, `python3 build.py` draaien.
 
+## Versie 2 · 20-10-2026
+- Berichten als tekstballonnen: ontvangen links, eigen berichten rechts. De selectievakjes blijven links.
+- Werkbalk boven het gesprek: Alles selecteren (met tussenstand als een deel is geselecteerd) en een schakelaar Zakelijk of Persoonlijk. Bij een ruimte, een kanaal of contact met een inwoner staat hij vast op zakelijk; na de bedenktijd kan persoonlijk alleen nog op verzoek.
+- Signal: zakelijk kiezen legt nog niets vast. Het gesprek blijft in het overzicht staan tot je de berichten vastlegt.
+
 ## Versie 1 · 20-10-2026
 - Gesprekken: zeven kanalen (Nextcloud Talk, Element in MijnBureau, Tchap in LaSuite, Teams, Slack, WhatsApp Business, Signal), elk met een eigen klasse: A eigen beheer, A′ eigen beheer en versleuteld, B leverancier, C toestel.
 - Per bericht de status in het archief: in het archief, persoonlijk en versleuteld, nog te scheiden of niet in het archief. Verwijderen in de chat laat het archief staan; een bewerking bewaart beide versies.

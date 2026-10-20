@@ -225,7 +225,7 @@
  "Helemaal persoonlijk": "Entirely personal",
  "Help": "Help",
  "Herinrichting Houtplein": "Redevelopment of Houtplein",
- "Herzien, kan tot {0}": "Revised, possible until {0}",
+ "Herzien, kan tot {0}": "Revise, possible until {0}",
  "Het Common Ground-team en het samenwerkingsverband OWC": "The Common Ground team and the OWC partnership",
  "Het antwoord gaat via de API de deur uit en komt via dezelfde brug in het archief.": "The reply leaves via the API and enters the archive through the same bridge.",
  "Het archief verhuist niet; alleen de bron verandert.": "The archive does not move; only the source changes.",
@@ -567,5 +567,11 @@
  "{0} ruimtes deels buiten het archief": "{0} rooms partly outside the archive",
  "{0} stappen": "{0} steps",
  "{0} telefoongesprekken nog niet beoordeeld": "{0} phone conversations not yet reviewed",
- "{0} vastgelegd": "{0} recorded"
+ "{0} vastgelegd": "{0} recorded",
+ "Alles selecteren": "Select all",
+ "{0} van {1} geselecteerd": "{0} of {1} selected",
+ "De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.": "The reflection period is over. Making it personal is only possible on request, via the records manager.",
+ "Register: gesprek beoordeeld als zakelijk": "Register: conversation assessed as business",
+ "niets in het archief tot je de berichten vastlegt": "nothing in the archive until you capture the messages",
+ "Zakelijk. Selecteer de zakelijke berichten en leg ze vast.": "Business. Select the business messages and capture them."
 }

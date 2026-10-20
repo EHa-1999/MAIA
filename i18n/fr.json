@@ -567,5 +567,11 @@
  "{0} ruimtes deels buiten het archief": "{0} salons partiellement hors des archives",
  "{0} stappen": "{0} étapes",
  "{0} telefoongesprekken nog niet beoordeeld": "{0} conversations sur téléphone pas encore examinées",
- "{0} vastgelegd": "{0} consignés"
+ "{0} vastgelegd": "{0} consignés",
+ "Alles selecteren": "Tout sélectionner",
+ "{0} van {1} geselecteerd": "{0} sur {1} sélectionnés",
+ "De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.": "Le délai de réflexion est écoulé. Le rendre personnel n'est possible que sur demande, auprès du gestionnaire de l'information.",
+ "Register: gesprek beoordeeld als zakelijk": "Registre : conversation évaluée comme professionnelle",
+ "niets in het archief tot je de berichten vastlegt": "rien dans les archives tant que vous n'avez pas consigné les messages",
+ "Zakelijk. Selecteer de zakelijke berichten en leg ze vast.": "Professionnel. Sélectionnez les messages professionnels et consignez-les."
 }

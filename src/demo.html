@@ -349,9 +349,21 @@ pre.sv{margin:0;font-family:var(--mono);font-size:12px;background:var(--surface2
 .cvb{display:flex;gap:8px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--line);background:var(--surface2);font-size:12.5px;flex-wrap:wrap}
 .msgs{flex:1;overflow:auto;padding:10px 12px;display:grid;gap:2px;align-content:start}
 .dsep{text-align:center;font-size:11.5px;color:var(--muted);padding:6px 0;display:flex;gap:10px;align-items:center}.dsep::before,.dsep::after{content:"";flex:1;height:1px;background:var(--line)}
-.mr{display:grid;grid-template-columns:18px 32px minmax(0,1fr);gap:8px;padding:6px;border-radius:8px;align-items:start}
-.mr:hover{background:var(--surface2)}.mr.pk{background:var(--accent-soft)}
-.mr input{margin-top:9px;accent-color:var(--accent)}
+.mr{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;padding:4px 6px;border-radius:8px;align-items:start}
+.mr.pk{background:var(--accent-soft)}
+.mr input{margin-top:10px;accent-color:var(--accent);width:16px;height:16px}
+.mw{display:flex;gap:8px;align-items:flex-start;min-width:0}.mr.me .mw{flex-direction:row-reverse}
+.bub{max-width:min(80%,560px);min-width:0;background:var(--surface2);border:1px solid var(--line);border-radius:12px 12px 12px 4px;padding:6px 10px 7px}
+.mr.me .bub{background:color-mix(in srgb,var(--chc) 13%,var(--surface));border-color:color-mix(in srgb,var(--chc) 32%,var(--line));border-radius:12px 12px 4px 12px}
+.mr.pk .bub{box-shadow:0 0 0 2px var(--accent)}
+.mr.me .mb1,.mr.me .mst{justify-content:flex-end}.mr.me .mtx{text-align:left}
+.cvb label{display:inline-flex;gap:6px;align-items:center;font-weight:500}.cvb label input{accent-color:var(--accent);width:16px;height:16px}
+.cvb .sp{flex:1}
+.sw{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:2px;background:var(--surface);gap:2px}
+.sw button{padding:3px 11px;border-radius:99px;font-size:12.5px;font-weight:500;color:var(--muted);display:inline-flex;gap:5px;align-items:center}
+.sw button[aria-pressed="true"]{background:var(--green);color:#fff}.sw button[aria-pressed="true"][data-v="persoonlijk"]{background:var(--violet)}
+.sw button:disabled{cursor:default}.sw.ro{opacity:.75}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sw button[aria-pressed="true"]{color:#06272c}}:root[data-theme="dark"] .sw button[aria-pressed="true"]{color:#06272c}
 .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
 .mr.me .av{background:var(--chc);color:#fff;border-color:transparent}
 .mr.bot .av{background:var(--violet-soft);color:var(--violet)}
@@ -578,7 +590,7 @@ function lastMsg(c){for(var i=c.msgs.length-1;i>=0;i--)if(!c.msgs[i].sys)return 
 function picked(c){return c.msgs.filter(function(m){return S.pick[m.id]})}
 function cnt(){var o={sort:0,arch:0,c:0};CONV.forEach(function(c){if(openC(c))o.sort++;var k=CHB[c.ch].k;
   if(k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o.arch++;
-  if(k==='C'&&!c.aard&&!c.msgs.some(function(m){return m.cap}))o.c++});return o}
+  if(k==='C'&&c.aard!=='persoonlijk'&&!c.msgs.some(function(m){return m.cap}))o.c++});return o}
 
 /* ---------- gesprekken ---------- */
 function chatView(){var ch=CHB[S.ch],c=BY[S.sel];
@@ -599,15 +611,22 @@ function pillsOf(c){var o='',a=aardOf(c),k=CHB[c.ch].k;
 function convHtml(c){var ch=CHB[c.ch],k=ch.k,d=new Date(now().getTime()-age(c)*DAY),pv=S.anon===c.id;
   var h='<section class="conv" style="--chc:'+ch.col+'" aria-label="'+T('Gesprek')+'"><div class="cvh">'+ic('chat',18)+'<div><b>'+esc(c.lit?c.ti:t(c.ti))+'</b><br><small>'+esc(ch.n)+' · '+esc(c.lit?t(c.sub):t(c.sub))+'</small></div>'
     +'<div class="pn"><span class="pill '+KP[k]+'">'+T(KL[k])+'</span><button type="button" class="tb" data-act="pane" aria-pressed="'+S.pane+'" title="'+T('Paneel van de Office Assistent')+'">'+ic('pane',14)+T('Assistent')+'</button></div></div>';
+  h+=barHtml(c);
   if(pv)h+='<div class="cvb"><span class="pill p-amber">'+ic('eye',11)+T('Voorbeeld')+'</span><span>'+T('Zo ziet het gesprek eruit na anonimiseren, voor de Woo.')+'</span></div>';
   h+='<div class="msgs"><div class="dsep">'+esc(fmtD(d))+'</div>'+c.msgs.map(function(m){return msgHtml(c,m)}).join('')+'</div>';
   var ph=k==='C'?t('Op je telefoon typ je in Signal. Hier zie je het gesprek zoals het op je toestel staat.'):k==='A2'&&!c.arch?t('Deze ruimte heeft geen archiefdeelnemer. Wat je hier typt, komt niet in het archief.'):'';
   h+='<div class="cmpw"><div class="cmp"><input id="cmp" autocomplete="off" placeholder="'+T('Typ een bericht')+'" aria-label="'+T('Bericht')+'"><button type="button" class="btn pri sm" data-act="send">'+ic('send',13)+T('Verzenden')+'</button></div>'+(ph?'<p class="hint">'+esc(ph)+'</p>':'')+'</div></section>';
   return h}
+function barHtml(c){var M=c.msgs.filter(function(m){return !m.sys}),n=picked(c).length,k=CHB[c.ch].k,a=c.aard,fixed=!isDirect(c),late=isDirect(c)&&k!=='C'&&a&&age(c)>=WINDOW;
+  var why=fixed?t(c.kind==='inwoner'?'Contact met een inwoner is altijd zakelijk.':'Ruimte over werk: alles wat hier staat, is zakelijk.'):late?t('De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.'):'';
+  var cur=fixed?'zakelijk':a;
+  var sw='<div class="sw'+(fixed||late?' ro':'')+'" role="group" aria-label="'+T('Zakelijk of persoonlijk')+'"'+(why?' title="'+esc(why)+'"':'')+'>'+[['zakelijk','check','Zakelijk'],['persoonlijk','lock','Persoonlijk']].map(function(x){return '<button type="button" data-act="aard" data-v="'+x[0]+'" aria-pressed="'+(cur===x[0])+'"'+(fixed||late||cur===x[0]?' disabled':'')+'>'+ic(x[1],12)+T(x[2])+'</button>'}).join('')+'</div>';
+  return '<div class="cvb"><label><input type="checkbox" id="selall"'+(n&&n===M.length?' checked':'')+' data-ind="'+(n&&n<M.length?1:0)+'">'+T('Alles selecteren')+'</label><span class="hint">'+(n?T('{0} van {1} geselecteerd',n,M.length):'')+'</span><span class="sp"></span>'
+    +(openC(c)?'<span class="hint">'+ic('clock',12)+'</span><span class="hint">'+T('nog {0} dagen',WINDOW-age(c))+'</span>':'')+sw+'</div>'}
 function msgHtml(c,m){if(m.sys)return '<div class="sysm">'+ic('bot',13)+'<span>'+T(m.tx)+'</span></div>';
   var p=who(m.w),st=mstate(c,m),me=m.w==='me',s=tx(c,m);if(openC(c)&&st==='arch')st='open';
   var h='<div class="mr'+(me?' me':'')+(S.pick[m.id]?' pk':'')+'"><input type="checkbox" data-pick="'+m.id+'"'+(S.pick[m.id]?' checked':'')+' aria-label="'+T('Selecteer bericht van {0}',p.n)+'">'
-    +'<div class="av" aria-hidden="true">'+esc(S.anon===c.id&&m.w==='graaf'?'?':ini(p.n))+'</div><div><div class="mb1"><b>'+esc(S.anon===c.id&&m.w==='graaf'?'['+t('naam')+']':p.n)+'</b>'+(p.o?'<span class="org">'+T(p.o)+'</span>':'')+'<time>'+esc(m.at)+'</time></div>';
+    +'<div class="mw"><div class="av" aria-hidden="true">'+esc(S.anon===c.id&&m.w==='graaf'?'?':ini(p.n))+'</div><div class="bub"><div class="mb1"><b>'+esc(S.anon===c.id&&m.w==='graaf'?'['+t('naam')+']':p.n)+'</b>'+(p.o?'<span class="org">'+T(p.o)+'</span>':'')+'<time>'+esc(m.at)+'</time></div>';
   if(m.del&&aardOf(c)==='zakelijk')h+='<div class="mtx del">'+T('Dit bericht is verwijderd.')+'</div>';
   else h+='<div class="mtx">'+anonHtml(s)+(m.ed?' <span class="hint">('+T('bewerkt')+')</span>':'')+'</div>';
   if(m.att)h+='<div class="mat">'+ic('clip',14)+'<div>'+esc(m.att)+'<small>'+T(m.sp?'In SharePoint. Het register verwijst naar het bestand als eigen informatieobject.':'Eigen informatieobject, gekoppeld aan het bericht')+'</small></div></div>';
@@ -615,7 +634,7 @@ function msgHtml(c,m){if(m.sys)return '<div class="sysm">'+ic('bot',13)+'<span>'
   if(m.cap)h+='<span class="pill p-grey">'+T(m.via==='client'?'Vastgelegd vanaf jouw client':'Vastgelegd door jou')+'</span>';
   if(m.del&&st==='arch')h+='<span class="pill p-grey">'+T('Verwijderd in de chat, bewaard in het archief')+'</span>';
   if(m.ed&&st==='arch')h+='<span class="pill p-grey" title="'+esc(t(m.ed))+'">'+T('Beide versies in het archief')+'</span>';
-  return h+'</div></div></div>'}
+  return h+'</div></div></div></div>'}
 
 /* ---------- paneel ---------- */
 function paneHtml(c){var n=cnt(),tabs=[['ov','list','Overzicht',n.sort+n.arch+n.c],['ges','chat','Dit gesprek',0],['help','help','Help',0]];
@@ -623,7 +642,7 @@ function paneHtml(c){var n=cnt(),tabs=[['ov','list','Overzicht',n.sort+n.arch+n.
   return '<aside class="ap" aria-label="'+T('Office Assistent')+'"><div class="apm"><div class="aph">'+ic('bot',18)+'<div><h3>'+T('Assistent')+'</h3><p>'+T('Office Assistent · module Chatarchivering')+'</p></div></div><div class="apb">'+body+'</div></div>'
     +'<div class="apr" role="tablist" aria-orientation="vertical">'+tabs.map(function(x){return '<button type="button" role="tab" data-act="pm" data-v="'+x[0]+'" aria-selected="'+(S.pm===x[0])+'" title="'+T(x[2])+'" aria-label="'+T(x[2])+'">'+ic(x[1],18)+(x[3]?'<i>'+x[3]+'</i>':'')+'</button>'}).join('')+'</div></aside>'}
 function ovHtml(n){var row=function(c,why){return '<li><button type="button" data-act="go" data-id="'+c.id+'"><span class="gn"><span>'+esc(c.lit?c.ti:t(c.ti))+'</span><small>'+esc(CHB[c.ch].n)+' · '+esc(why)+'</small></span></button></li>'};
-  var a=CONV.filter(openC),b=CONV.filter(function(c){return CHB[c.ch].k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'})}),d=CONV.filter(function(c){return CHB[c.ch].k==='C'&&!c.aard&&!c.msgs.some(function(m){return m.cap})});
+  var a=CONV.filter(openC),b=CONV.filter(function(c){return CHB[c.ch].k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'})}),d=CONV.filter(function(c){return CHB[c.ch].k==='C'&&c.aard!=='persoonlijk'&&!c.msgs.some(function(m){return m.cap})});
   var h='<h3>'+T('Overzicht')+'</h3><p class="hint">'+T('Wat nog aandacht vraagt, over alle kanalen heen.')+'</p>';
   h+='<h4>'+T('Nog te scheiden')+' <b>'+a.length+'</b></h4>'+(a.length?'<ul class="apl">'+a.map(function(c){return row(c,t('nog {0} dagen',WINDOW-age(c)))}).join('')+'</ul>':'<p class="hint">'+T('Niets meer te scheiden.')+'</p>');
   h+='<h4>'+T('Zakelijke ruimtes met berichten buiten het archief')+' <b>'+b.length+'</b></h4>'+(b.length?'<ul class="apl">'+b.map(function(c){return row(c,t(c.arch?'eerdere berichten niet vastgelegd':'geen archiefdeelnemer'))}).join('')+'</ul>':'<p class="hint">'+T('Alle zakelijke ruimtes worden gearchiveerd.')+'</p>');
@@ -790,6 +809,7 @@ function render(){CONV.forEach(auto);var n=cnt();
   document.getElementById('win').innerHTML=({chat:chatView,kan:kanView,arch:archView,tech:techView,groei:groeiView})[S.view]();
   document.getElementById('hood').innerHTML='<b>'+T('Onder de motorkap')+'</b><code>'+esc(S.wire)+'</code>';
   document.getElementById('foot').innerHTML='<span>MAIA · '+T('demo versie {0}, {1}',DEMO.v,DEMO.d)+'</span><span>'+T('Onderdeel van XENA, naast de opslag, MIRA, TINA en ELSA.')+'</span><span>'+T('Alle voorbeeldgegevens zijn verzonnen.')+'</span>';
+  var sa=document.getElementById('selall');if(sa)sa.indeterminate=sa.dataset.ind==='1';
   modal()}
 function w(s){S.wire=s}
 var wt=t;
@@ -810,6 +830,7 @@ var A={
   skip:function(e){S.skip=+e.dataset.v;w(S.skip?wt('Demo: {0} dagen later',S.skip)+' · '+wt('MAIA zet niet-gescheiden gesprekken na tien dagen op zakelijk'):'—');render()},
   aard:function(e){var c=BY[S.sel],v=e.dataset.v||null;c.aard=v;c.auto=false;
     if(v==='persoonlijk'){c.hist.push(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk':'Aangemerkt als persoonlijk en versleuteld');w(CHB[c.ch].k==='C'?wt('Register: gesprek beoordeeld als persoonlijk · niets vastgelegd'):'PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: persoonlijk')+' · '+wt('berichten versleuteld met jouw persoonlijke sleutel')+' · '+wt('buiten het Woo-zoekbereik'));toast(t(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk. Er wordt niets vastgelegd.':'Persoonlijk. Alleen jij kunt de berichten in het archief lezen.'))}
+    else if(v==='zakelijk'&&CHB[c.ch].k==='C'){c.hist.push('Aangemerkt als zakelijk');w(wt('Register: gesprek beoordeeld als zakelijk')+' · '+wt('niets in het archief tot je de berichten vastlegt'));toast(t('Zakelijk. Selecteer de zakelijke berichten en leg ze vast.'))}
     else if(v==='zakelijk'){c.hist.push('Aangemerkt als zakelijk');w('PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: zakelijk')+' · '+wt('bewaartermijn vastgelegd')+' · '+wt('Object Lock zodra de bedenktijd voorbij is'));toast(t('Vastgelegd als zakelijk.'))}
     else{c.hist.push('Opnieuw te beoordelen');w('—')}
     render()},
@@ -842,6 +863,7 @@ document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&S.colo){S
   if(ev.key==='Enter'&&ev.target.id==='cmp'){ev.preventDefault();A.send()}});
 document.addEventListener('change',function(ev){var e=ev.target;
   if(e.id==='lang'){setLang(e.value,true);render();return}
+  if(e.id==='selall'){var cc=BY[S.sel];S.pick={};if(e.checked)cc.msgs.forEach(function(m){if(!m.sys)S.pick[m.id]=true});render();return}
   if(e.dataset&&e.dataset.pick){if(e.checked)S.pick[e.dataset.pick]=true;else delete S.pick[e.dataset.pick];render();return}
   if(e.dataset&&e.dataset.f){var c=BY[S.sel],k=e.dataset.f,v=e.value;if(!v)return;
     if(k==='pd'){var L=picked(c);c.hist.push('Selectie opgenomen in een dossier');S.pick={};w(wt('Register: dossier {0} verwijst naar {1} berichten',v,L.length)+' · '+L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'')+' · '+wt('geen kopie'));toast(t('{0} berichten opgenomen in dossier {1}.',L.length,v));render();return}
