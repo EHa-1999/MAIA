@@ -380,6 +380,22 @@ pre.sv{margin:0;font-family:var(--mono);font-size:12px;background:var(--surface2
 .cmp .hint{flex-basis:100%}
 .cmpw{border-top:1px solid var(--line)}.cmpw .cmp{border-top:0}.cmpw>p{padding:0 12px 8px}
 .conn.multi{gap:6px;flex-wrap:wrap}
+.sw.off button,.sw button:disabled{opacity:.45;cursor:not-allowed}.sw button[aria-pressed="true"]:disabled{opacity:.8}
+.cmenu{position:fixed;z-index:30;min-width:230px;max-width:calc(100vw - 16px);background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:4px;display:grid;gap:1px}
+.cmenu button{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:5px;font-size:13px;text-align:left;width:100%}
+.cmenu button:hover:not(:disabled),.cmenu button:focus-visible{background:var(--accent-soft);outline:0}
+.cmenu button:disabled{opacity:.45;cursor:default}.cmenu button[aria-pressed="true"]{font-weight:600;color:var(--accent)}
+.cmenu hr{border:0;border-top:1px solid var(--line);margin:3px 0}
+.cmh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:5px 10px 3px;font-weight:600}
+.mform{display:grid;gap:10px}.mfld{display:grid;gap:3px}.mlab{display:flex;gap:6px;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:500}
+.kind{font-size:10.5px;padding:0 7px;border-radius:99px;font-weight:600;line-height:17px;white-space:nowrap}
+.k-a{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}.k-v{background:var(--amber-soft);color:var(--amber)}.k-g{background:var(--blue-soft);color:var(--blue)}.k-b{background:var(--green-soft);color:var(--green)}
+.inp{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:12.5px}
+.mfld .ro{padding:5px 8px;border:1px dashed var(--line);border-radius:6px;color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.mfld .lkd{display:grid;gap:5px}
+.anl{display:grid;gap:3px}.anl label{display:flex;gap:6px;align-items:center;font-size:12.5px;flex-wrap:wrap}.anl input{accent-color:var(--accent)}
+.anadd{display:flex;gap:6px;width:100%}.anadd .inp{flex:1;min-width:0}
+.gchips .pill button{margin-left:2px;font-size:13px;line-height:1}
 .kdl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:12.5px}.kdl dt{color:var(--muted)}.kdl dd{margin:0}
 .box{border:1px solid var(--line);border-radius:8px;padding:9px 10px;display:grid;gap:7px;background:var(--surface);justify-items:start}.box>*{max-width:100%}
 .box .fld{width:100%}
@@ -411,6 +427,7 @@ pre.sv{margin:0;font-family:var(--mono);font-size:12px;background:var(--surface2
   <div class="foot" id="foot"></div>
 </div>
 <div id="layer"></div>
+<div id="cmh"></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
@@ -566,31 +583,58 @@ C({id:'sg2',ch:'signal',kind:'direct',ti:'Hardloopclubje Spaarndam',sub:'Groep �
 var BY={};CONV.forEach(function(c){BY[c.id]=c});
 
 /* ---------- toestand ---------- */
-var S={view:'chat',ch:'talk',sel:'t1',pm:'ges',pane:true,skip:0,wire:'—',colo:false,pick:{},anon:null,ah:0};
+var S={view:'chat',ch:'talk',sel:'t1',pm:'ges',pane:true,skip:0,wire:'—',colo:false,pick:{},anon:null,ah:0,cm:null};
+var CLS={verg:['Vergunningverlening','Vernietigen, 10 jaar na afhandeling'],proj:['Ruimtelijke projecten','Blijvend bewaren'],bedr:['Interne bedrijfsvoering','Vernietigen, 5 jaar na afhandeling'],
+ inter:['Intergemeentelijke samenwerking','Vernietigen, 10 jaar na afhandeling'],best:['Bestuurlijke informatievoorziening','Blijvend bewaren'],dienst:['Dienstverlening aan inwoners','Vernietigen, 2 jaar na afhandeling']};
+var CLSOF={t1:'verg',t2:'bedr',t3:'verg',e1:'inter',e2:'proj',tc1:'inter',tm1:'bedr',tm2:'bedr',s1:'proj',w1:'dienst',sg1:'best',sg2:'bedr'};
+var TREFS={t1:['dakopbouw','welstand','Kleverlaan'],t3:['leges','bezwaar'],e1:['beschermd stadsgezicht','beeldkwaliteit'],e2:['bestrating','terrassen','Houtplein'],tc1:['duinmonitoring','Interreg'],tm1:['cloudmigratie','sleutelgebruikers'],s1:['afzetting','verkeersbesluit','Houtplein'],w1:['dakkapel','leges'],sg1:['terrassen','Houtplein','debat']};
+var WOOCAT=['Organisatie en werkwijze','Adviezen','Beschikkingen','Woo-verzoeken en -besluiten','Onderzoeksrapporten','Convenanten','Jaarplannen en jaarverslagen'];
+var BEP=['Openbaar','Intern','Vertrouwelijk'];
+var NAMES=['De Graaf','de Graaf','Sanne','Camille','Ans'];
+CONV.forEach(function(c){c.cls=CLSOF[c.id]||'bedr'});
 
 function age(c){return c.age+S.skip}
 function until(c){return new Date(now().getTime()+(WINDOW-age(c))*DAY)}
+function late(c){return age(c)>=WINDOW}
 function isDirect(c){return c.kind==='direct'}
-function aardOf(c){return isDirect(c)?(c.aard||null):'zakelijk'}
-function openC(c){return isDirect(c)&&CHB[c.ch].k!=='C'&&!c.aard&&age(c)<WINDOW}
-function auto(c){if(isDirect(c)&&CHB[c.ch].k!=='C'&&!c.aard&&age(c)>=WINDOW){c.aard='zakelijk';c.auto=true;c.hist.push('Na tien dagen automatisch zakelijk')}}
-function mstate(c,m){if(m.sys)return 'sys';var k=CHB[c.ch].k;
-  if(k==='C')return m.cap?'arch':(c.aard==='persoonlijk'?'pers':'none');
-  if(aardOf(c)==='persoonlijk')return 'pers';
-  if(k==='A2')return (m.cap||(c.arch&&m.n>=c.archFrom))?'arch':'none';
-  return 'arch'}
+function real(c){return c.msgs.filter(function(m){return !m.sys})}
+/* aard per bericht: een gekozen waarde gaat voor; een ruimte of inwonercontact is standaard zakelijk */
+function ma(c,m){if(m.sys)return null;if(m.aard)return m.aard;return isDirect(c)?null:'zakelijk'}
+function openMsgs(c){return real(c).filter(function(m){return !ma(c,m)})}
+function openC(c){return isDirect(c)&&CHB[c.ch].k!=='C'&&openMsgs(c).length>0&&!late(c)}
+function auto(c){if(isDirect(c)&&CHB[c.ch].k!=='C'&&late(c)){var n=0;openMsgs(c).forEach(function(m){m.aard='zakelijk';m.auto=true;n++});if(n)c.hist.push(['{0} berichten na tien dagen automatisch zakelijk',n])}}
+function aardOf(c){var L=real(c),z=L.filter(function(m){return ma(c,m)==='zakelijk'}).length,p=L.filter(function(m){return ma(c,m)==='persoonlijk'}).length;return z&&!p?'zakelijk':p&&!z?'persoonlijk':z||p?'gemengd':null}
+function mstate(c,m){if(m.sys)return 'sys';var k=CHB[c.ch].k,a=ma(c,m);
+  if(a==='persoonlijk')return 'pers';
+  if(k==='C')return m.cap?'arch':(a?'none':'open');
+  if(k==='A2'&&!(m.cap||(c.arch&&m.n>=c.archFrom)))return 'none';
+  return a?'arch':'open'}
+/* kan dit bericht persoonlijk worden? */
+function canPers(c,m){if(c.kind==='inwoner')return 'Contact met een inwoner is altijd zakelijk.';if(ma(c,m)==='zakelijk'&&late(c))return 'De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.';return ''}
 var STL={arch:['In het archief','p-green'],pers:['Persoonlijk, versleuteld','p-violet'],none:['Niet in het archief','p-amber'],open:['Nog te scheiden','p-blue']};
 function who(w){var p=PP[w]||[w,''];return {n:p[0],o:p[1]}}
-function tx(c,m){var s=(m.lit||c.lit)?m.tx:t(m.tx);return S.anon===c.id||(S.anon==='ok:'+c.id)?anon(s):s}
-function anon(s){return s.replace(/(\+31 ?6|06)[ -]?\d[\d ]{6,11}\d/g,'[[tel]]').replace(/(mevrouw|Mrs\.?|Frau|Madame)? ?(J\. )?[Dd]e Graaf/g,function(x,a){return (a?a+' ':'')+'[[naam]]'}).replace(/Kleverlaan 30/g,'[[adres]]')}
-function anonHtml(s){return esc(s).replace(/\[\[(tel|naam|adres)\]\]/g,function(x,k){return '<mark>['+T({tel:'telefoonnummer',naam:'naam',adres:'adres'}[k])+']</mark>'})}
+function raw(c,m){return (m.lit||c.lit)?m.tx:t(m.tx)}
+/* anonimiseren: vondsten per bericht, uit te zetten (vals positief) en aan te vullen (vals negatief) */
+function hits(c,m){var s=raw(c,m),o=[],seen={},add=function(k,v){if(!seen[v]){seen[v]=1;o.push({k:k,v:v,on:!(m.anx&&m.anx[v]===false)})}};
+  (s.match(/(\+31 ?6|06)[ -]?\d[\d ]{6,11}\d/g)||[]).forEach(function(v){add('tel',v)});
+  (s.match(/[A-Z][a-zé]+(laan|straat|plein|weg|gracht|kade) \d+[a-z]?\b/g)||[]).forEach(function(v){add('adres',v)});
+  NAMES.forEach(function(n){if(s.indexOf(n)>=0&&!o.some(function(h){return h.v.indexOf(n)>=0||n.indexOf(h.v)>=0}))add('naam',n)});
+  (m.anadd||[]).forEach(function(v){if(s.indexOf(v)>=0)add('eigen',v)});return o}
+function mask(c,m,s){var H=hits(c,m).filter(function(h){return h.on}).sort(function(a,b){return b.v.length-a.v.length});H.forEach(function(h){s=s.split(h.v).join('[['+h.k+']]')});return s}
+function tx(c,m){var s=raw(c,m);return S.anon===c.id&&ma(c,m)==='zakelijk'?mask(c,m,s):s}
+var ANL={tel:'telefoonnummer',naam:'naam',adres:'adres',eigen:'weggelakt'};
+function anonHtml(s){return esc(s).replace(/\[\[(tel|naam|adres|eigen)\]\]/g,function(x,k){return '<mark>['+T(ANL[k])+']</mark>'})}
+function metaWho(c,m){var p=who(m.w);if(m.w==='me'||p.o==='Gemeente Haarlem')return ['['+t('medewerker')+']','Medewerker van de gemeente: de naam gaat niet mee in de publicatie.'];if(p.o==='Wethouder')return [p.n,'Bestuurder: de naam blijft openbaar.'];if(p.o==='Inwoner')return ['['+t('naam')+']','Inwoner: de naam gaat niet mee in de publicatie.'];return ['['+t('medewerker van {0}',p.o)+']','Medewerker van een andere organisatie: alleen de organisatie gaat mee.']}
 function ini(n){return n.split(/[ ·]+/).filter(function(x){return /^[A-ZÀ-Ý]/.test(x)}).slice(0,2).map(function(x){return x[0]}).join('')||n[0]}
 function convs(ch){return CONV.filter(function(c){return c.ch===ch})}
 function lastMsg(c){for(var i=c.msgs.length-1;i>=0;i--)if(!c.msgs[i].sys)return c.msgs[i];return c.msgs[0]}
-function picked(c){return c.msgs.filter(function(m){return S.pick[m.id]})}
+function picked(c){return c.msgs.filter(function(m){return S.pick[m.id]&&!m.sys})}
+function meta(c,m){if(!m.meta)m.meta={naam:t('Chatbericht {0}, {1} {2}',c.lit?c.ti:t(c.ti),fmtD(new Date(now().getTime()-age(c)*DAY)),m.at),naamOk:false,cls:c.cls,clsOk:false,woo:'',bep:'Intern',bepSet:false,zaak:c.zaak||'',doss:[],tref:[],saved:false};return m.meta}
 function cnt(){var o={sort:0,arch:0,c:0};CONV.forEach(function(c){if(openC(c))o.sort++;var k=CHB[c.ch].k;
   if(k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o.arch++;
-  if(k==='C'&&c.aard!=='persoonlijk'&&!c.msgs.some(function(m){return m.cap}))o.c++});return o}
+  if(k==='C'&&openMsgs(c).length)o.c++});return o}
+function N(n,one,many){return n===1?t(one):t(many,n)}
+function hl(x){return Array.isArray(x)?T.apply(null,x):T(x)}
 
 /* ---------- gesprekken ---------- */
 function chatView(){var ch=CHB[S.ch],c=BY[S.sel];
@@ -599,69 +643,80 @@ function chatView(){var ch=CHB[S.ch],c=BY[S.sel];
     +'<p class="gr">'+T('De letter is de klasse: hoe het kanaal in het archief komt. Zie Kanalen.')+'</p></nav>';
   var list='<div class="clist" style="--chc:'+ch.col+'">'+convs(ch.id).map(function(x){var l=lastMsg(x),st=pillsOf(x);
       return '<button type="button" class="ci" data-act="sel" data-id="'+x.id+'" aria-current="'+(S.sel===x.id)+'"><div class="r1"><b>'+esc(x.lit?x.ti:t(x.ti))+'</b><time>'+esc(age(x)===0?l.at:fmtD(new Date(now().getTime()-age(x)*DAY)))+'</time></div>'
-        +'<div class="pv">'+esc(l.sys?t(l.tx):(l.w==='me'?t('Jij'):who(l.w).n.split(' ')[0])+': '+(l.del&&aardOf(x)==='zakelijk'?t('Dit bericht is verwijderd.'):tx(x,l).replace(/\[\[(\w+)\]\]/g,'…')))+'</div><div class="st">'+st+'</div></button>'}).join('')+'</div>';
+        +'<div class="pv">'+esc(l.sys?t(l.tx):(l.w==='me'?t('Jij'):who(l.w).n.split(' ')[0])+': '+(l.del&&ma(x,l)==='zakelijk'?t('Dit bericht is verwijderd.'):tx(x,l).replace(/\[\[(\w+)\]\]/g,'…')))+'</div><div class="st">'+st+'</div></button>'}).join('')+'</div>';
   return '<div class="win"><div class="cc'+(S.pane?'':' nopane')+'">'+rail+list+convHtml(c)+(S.pane?paneHtml(c):'')+'</div></div>';
 }
-function pillsOf(c){var o='',a=aardOf(c),k=CHB[c.ch].k;
-  if(openC(c))o+='<span class="pill p-blue">'+ic('clock',11)+T('nog {0} dagen',WINDOW-age(c))+'</span>';
-  else if(a==='persoonlijk'||(k==='C'&&c.aard==='persoonlijk'))o+='<span class="pill p-violet">'+ic('lock',11)+T('Persoonlijk')+'</span>';
-  else if(k==='C'){var n=c.msgs.filter(function(m){return m.cap}).length;o+=n?'<span class="pill p-green">'+T('{0} vastgelegd',n)+'</span>':'<span class="pill p-amber">'+T('Niet vastgelegd')+'</span>'}
-  else{o+='<span class="pill p-green">'+T('Zakelijk')+'</span>';if(k==='A2'&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o+='<span class="pill p-amber">'+ic('warn',11)+T('Deels niet in het archief')+'</span>'}
+function pillsOf(c){var o='',k=CHB[c.ch].k,L=real(c),n=function(v){return L.filter(function(m){return ma(c,m)===v}).length},op=openMsgs(c).length,z=n('zakelijk'),p=n('persoonlijk');
+  if(op)o+='<span class="pill p-blue">'+ic('clock',11)+(k!=='C'&&isDirect(c)?T('{0} te scheiden, nog {1} dagen',op,WINDOW-age(c)):T('{0} te beoordelen',op))+'</span>';
+  if(z)o+='<span class="pill p-green">'+T('{0} zakelijk',z)+'</span>';
+  if(p)o+='<span class="pill p-violet">'+ic('lock',11)+T('{0} persoonlijk',p)+'</span>';
+  if(k==='A2'&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o+='<span class="pill p-amber">'+ic('warn',11)+T('Deels niet in het archief')+'</span>';
   if(c.zaak)o+='<span class="pill p-grey">'+esc(c.zaak)+'</span>';return o}
 function convHtml(c){var ch=CHB[c.ch],k=ch.k,d=new Date(now().getTime()-age(c)*DAY),pv=S.anon===c.id;
-  var h='<section class="conv" style="--chc:'+ch.col+'" aria-label="'+T('Gesprek')+'"><div class="cvh">'+ic('chat',18)+'<div><b>'+esc(c.lit?c.ti:t(c.ti))+'</b><br><small>'+esc(ch.n)+' · '+esc(c.lit?t(c.sub):t(c.sub))+'</small></div>'
+  var h='<section class="conv" style="--chc:'+ch.col+'" aria-label="'+T('Gesprek')+'"><div class="cvh">'+ic('chat',18)+'<div><b>'+esc(c.lit?c.ti:t(c.ti))+'</b><br><small>'+esc(ch.n)+' · '+T(c.sub)+'</small></div>'
     +'<div class="pn"><span class="pill '+KP[k]+'">'+T(KL[k])+'</span><button type="button" class="tb" data-act="pane" aria-pressed="'+S.pane+'" title="'+T('Paneel van de Office Assistent')+'">'+ic('pane',14)+T('Assistent')+'</button></div></div>';
   h+=barHtml(c);
-  if(pv)h+='<div class="cvb"><span class="pill p-amber">'+ic('eye',11)+T('Voorbeeld')+'</span><span>'+T('Zo ziet het gesprek eruit na anonimiseren, voor de Woo.')+'</span></div>';
+  if(pv)h+='<div class="cvb"><span class="pill p-amber">'+ic('eye',11)+T('Voorbeeld')+'</span><span>'+T('Zo zien de zakelijke berichten eruit na anonimiseren, voor de Woo.')+'</span><span class="sp"></span><button type="button" class="linkbtn" data-act="anonview">'+T('Sluiten')+'</button></div>';
   h+='<div class="msgs"><div class="dsep">'+esc(fmtD(d))+'</div>'+c.msgs.map(function(m){return msgHtml(c,m)}).join('')+'</div>';
   var ph=k==='C'?t('Op je telefoon typ je in Signal. Hier zie je het gesprek zoals het op je toestel staat.'):k==='A2'&&!c.arch?t('Deze ruimte heeft geen archiefdeelnemer. Wat je hier typt, komt niet in het archief.'):'';
   h+='<div class="cmpw"><div class="cmp"><input id="cmp" autocomplete="off" placeholder="'+T('Typ een bericht')+'" aria-label="'+T('Bericht')+'"><button type="button" class="btn pri sm" data-act="send">'+ic('send',13)+T('Verzenden')+'</button></div>'+(ph?'<p class="hint">'+esc(ph)+'</p>':'')+'</div></section>';
   return h}
-function barHtml(c){var M=c.msgs.filter(function(m){return !m.sys}),n=picked(c).length,k=CHB[c.ch].k,a=c.aard,fixed=!isDirect(c),late=isDirect(c)&&k!=='C'&&a&&age(c)>=WINDOW;
-  var why=fixed?t(c.kind==='inwoner'?'Contact met een inwoner is altijd zakelijk.':'Ruimte over werk: alles wat hier staat, is zakelijk.'):late?t('De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.'):'';
-  var cur=fixed?'zakelijk':a;
-  var sw='<div class="sw'+(fixed||late?' ro':'')+'" role="group" aria-label="'+T('Zakelijk of persoonlijk')+'"'+(why?' title="'+esc(why)+'"':'')+'>'+[['zakelijk','check','Zakelijk'],['persoonlijk','lock','Persoonlijk']].map(function(x){return '<button type="button" data-act="aard" data-v="'+x[0]+'" aria-pressed="'+(cur===x[0])+'"'+(fixed||late||cur===x[0]?' disabled':'')+'>'+ic(x[1],12)+T(x[2])+'</button>'}).join('')+'</div>';
-  return '<div class="cvb"><label><input type="checkbox" id="selall"'+(n&&n===M.length?' checked':'')+' data-ind="'+(n&&n<M.length?1:0)+'">'+T('Alles selecteren')+'</label><span class="hint">'+(n?T('{0} van {1} geselecteerd',n,M.length):'')+'</span><span class="sp"></span>'
-    +(openC(c)?'<span class="hint">'+ic('clock',12)+'</span><span class="hint">'+T('nog {0} dagen',WINDOW-age(c))+'</span>':'')+sw+'</div>'}
+/* knoppen voor de selectie: uitgefaded zonder selectie */
+function aardBtns(c,L,ctx){var n=L.length,all=function(v){return n&&L.every(function(m){return ma(c,m)===v})},blk=n?L.map(function(m){return canPers(c,m)}).filter(Boolean):[],pb=n&&blk.length===n;
+  return [['zakelijk','check','Zakelijk',!n,all('zakelijk'),''],['persoonlijk','lock','Persoonlijk',!n||pb,all('persoonlijk'),pb?t(blk[0]):'']].map(function(x){
+    return '<button type="button" '+(ctx?'role="menuitem" ':'')+'data-act="mark" data-v="'+x[0]+'" aria-pressed="'+x[4]+'"'+(x[3]?' disabled':'')+(x[5]?' title="'+esc(x[5])+'"':(x[3]&&!n?' title="'+T('Selecteer eerst een of meer berichten')+'"':''))+'>'+ic(x[1],12)+'<span>'+T(x[2])+'</span></button>'}).join('')}
+function barHtml(c){var M=real(c),L=picked(c),n=L.length;
+  return '<div class="cvb"><label><input type="checkbox" id="selall"'+(n&&n===M.length?' checked':'')+' data-ind="'+(n&&n<M.length?1:0)+'">'+T('Alles selecteren')+'</label><span class="hint">'+(n?T('{0} van {1} geselecteerd',n,M.length):T('Of klik met de rechtermuisknop op een bericht'))+'</span><span class="sp"></span>'
+    +(openC(c)?'<span class="hint">'+ic('clock',12)+'</span><span class="hint">'+T('nog {0} dagen',WINDOW-age(c))+'</span>':'')
+    +'<div class="sw'+(n?'':' off')+'" role="group" aria-label="'+T('Selectie aanmerken als')+'">'+aardBtns(c,L)+'</div></div>'}
 function msgHtml(c,m){if(m.sys)return '<div class="sysm">'+ic('bot',13)+'<span>'+T(m.tx)+'</span></div>';
-  var p=who(m.w),st=mstate(c,m),me=m.w==='me',s=tx(c,m);if(openC(c)&&st==='arch')st='open';
-  var h='<div class="mr'+(me?' me':'')+(S.pick[m.id]?' pk':'')+'"><input type="checkbox" data-pick="'+m.id+'"'+(S.pick[m.id]?' checked':'')+' aria-label="'+T('Selecteer bericht van {0}',p.n)+'">'
-    +'<div class="mw"><div class="av" aria-hidden="true">'+esc(S.anon===c.id&&m.w==='graaf'?'?':ini(p.n))+'</div><div class="bub"><div class="mb1"><b>'+esc(S.anon===c.id&&m.w==='graaf'?'['+t('naam')+']':p.n)+'</b>'+(p.o?'<span class="org">'+T(p.o)+'</span>':'')+'<time>'+esc(m.at)+'</time></div>';
-  if(m.del&&aardOf(c)==='zakelijk')h+='<div class="mtx del">'+T('Dit bericht is verwijderd.')+'</div>';
+  var p=who(m.w),st=mstate(c,m),me=m.w==='me',s=tx(c,m),a=ma(c,m),hide=S.anon===c.id&&a==='zakelijk',mw=hide?metaWho(c,m)[0]:p.n;
+  var h='<div class="mr'+(me?' me':'')+(S.pick[m.id]?' pk':'')+'" data-mid="'+m.id+'"><input type="checkbox" data-pick="'+m.id+'"'+(S.pick[m.id]?' checked':'')+' aria-label="'+T('Selecteer bericht van {0}',p.n)+'" aria-haspopup="menu">'
+    +'<div class="mw"><div class="av" aria-hidden="true">'+esc(hide&&mw!==p.n?'?':ini(p.n))+'</div><div class="bub"><div class="mb1"><b>'+esc(mw)+'</b>'+(p.o?'<span class="org">'+T(p.o)+'</span>':'')+'<time>'+esc(m.at)+'</time></div>';
+  if(m.del&&a==='zakelijk')h+='<div class="mtx del">'+T('Dit bericht is verwijderd.')+'</div>';
   else h+='<div class="mtx">'+anonHtml(s)+(m.ed?' <span class="hint">('+T('bewerkt')+')</span>':'')+'</div>';
   if(m.att)h+='<div class="mat">'+ic('clip',14)+'<div>'+esc(m.att)+'<small>'+T(m.sp?'In SharePoint. Het register verwijst naar het bestand als eigen informatieobject.':'Eigen informatieobject, gekoppeld aan het bericht')+'</small></div></div>';
-  h+='<div class="mst"><span class="pill '+STL[st][1]+'">'+T(STL[st][0])+'</span>';
+  h+='<div class="mst">'+(a?'<span class="pill '+(a==='zakelijk'?'p-green':'p-violet')+'">'+T(a==='zakelijk'?(m.auto?'Zakelijk, na tien dagen':'Zakelijk'):'Persoonlijk')+'</span>':'');
+  h+='<span class="pill '+STL[st][1]+'">'+T(STL[st][0])+'</span>';
+  if(m.meta&&m.meta.saved&&a==='zakelijk')h+='<span class="pill p-grey">'+ic('doc',11)+T('Metagegevens vastgelegd')+'</span>';
+  if(m.anonOk&&a==='zakelijk')h+='<span class="pill p-grey">'+ic('eye',11)+T('Geanonimiseerd voor de Woo')+'</span>';
   if(m.cap)h+='<span class="pill p-grey">'+T(m.via==='client'?'Vastgelegd vanaf jouw client':'Vastgelegd door jou')+'</span>';
   if(m.del&&st==='arch')h+='<span class="pill p-grey">'+T('Verwijderd in de chat, bewaard in het archief')+'</span>';
   if(m.ed&&st==='arch')h+='<span class="pill p-grey" title="'+esc(t(m.ed))+'">'+T('Beide versies in het archief')+'</span>';
   return h+'</div></div></div></div>'}
+/* contextmenu */
+function cmHtml(){var cm=S.cm;if(!cm)return '';var c=BY[S.sel],L=cm.ids.map(function(id){return c.msgs.filter(function(m){return m.id===id})[0]}).filter(Boolean),z=L.some(function(m){return ma(c,m)==='zakelijk'}),one=L.length===1;
+  var it=function(act,icn,lab,dis,v){return '<button type="button" role="menuitem" data-act="'+act+'"'+(v?' data-v="'+v+'"':'')+(dis?' disabled':'')+'>'+ic(icn,13)+'<span>'+T(lab)+'</span></button>'};
+  return '<div class="cmenu" role="menu" aria-label="'+T('Bericht')+'" style="left:'+cm.x+'px;top:'+cm.y+'px"><div class="cmh">'+(one?T('Dit bericht'):T('{0} geselecteerde berichten',L.length))+'</div>'
+    +aardBtns(c,L,true)+'<hr>'
+    +it('cmmeta','doc','Metagegevens…',!z)+it('cmanon','eye','Anonimiseren…',!z)+'<hr>'
+    +(one?it('cmpick',S.pick[L[0].id]?'check':'list',S.pick[L[0].id]?'Selectie opheffen':'Selecteren'):'')+it('cmall','list','Alles selecteren')+(Object.keys(S.pick).length?it('clr','list','Selectie wissen'):'')+'</div>'}
 
 /* ---------- paneel ---------- */
-function paneHtml(c){var n=cnt(),tabs=[['ov','list','Overzicht',n.sort+n.arch+n.c],['ges','chat','Dit gesprek',0],['help','help','Help',0]];
-  var body=S.pm==='ov'?ovHtml(n):S.pm==='help'?helpHtml(c):gesHtml(c);
+function zakSel(c){return picked(c).filter(function(m){return ma(c,m)==='zakelijk'})}
+function paneHtml(c){var n=cnt(),tabs=[['ov','list','Overzicht',n.sort+n.arch+n.c],['ges','chat','Dit gesprek',0],['meta','doc','Metagegevens',zakSel(c).length],['anon','eye','Anonimiseren',0],['help','help','Help',0]];
+  var body=S.pm==='ov'?ovHtml(n):S.pm==='help'?helpHtml(c):S.pm==='meta'?metaHtml(c):S.pm==='anon'?anonPane(c):gesHtml(c);
   return '<aside class="ap" aria-label="'+T('Office Assistent')+'"><div class="apm"><div class="aph">'+ic('bot',18)+'<div><h3>'+T('Assistent')+'</h3><p>'+T('Office Assistent · module Chatarchivering')+'</p></div></div><div class="apb">'+body+'</div></div>'
     +'<div class="apr" role="tablist" aria-orientation="vertical">'+tabs.map(function(x){return '<button type="button" role="tab" data-act="pm" data-v="'+x[0]+'" aria-selected="'+(S.pm===x[0])+'" title="'+T(x[2])+'" aria-label="'+T(x[2])+'">'+ic(x[1],18)+(x[3]?'<i>'+x[3]+'</i>':'')+'</button>'}).join('')+'</div></aside>'}
 function ovHtml(n){var row=function(c,why){return '<li><button type="button" data-act="go" data-id="'+c.id+'"><span class="gn"><span>'+esc(c.lit?c.ti:t(c.ti))+'</span><small>'+esc(CHB[c.ch].n)+' · '+esc(why)+'</small></span></button></li>'};
-  var a=CONV.filter(openC),b=CONV.filter(function(c){return CHB[c.ch].k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'})}),d=CONV.filter(function(c){return CHB[c.ch].k==='C'&&c.aard!=='persoonlijk'&&!c.msgs.some(function(m){return m.cap})});
+  var a=CONV.filter(openC),b=CONV.filter(function(c){return CHB[c.ch].k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'})}),d=CONV.filter(function(c){return CHB[c.ch].k==='C'&&openMsgs(c).length});
+  var e=[];CONV.forEach(function(c){var L=real(c).filter(function(m){return m.aard==='zakelijk'&&!m.auto&&!(m.meta&&m.meta.saved)});if(L.length)e.push([c,L.length])});
   var h='<h3>'+T('Overzicht')+'</h3><p class="hint">'+T('Wat nog aandacht vraagt, over alle kanalen heen.')+'</p>';
-  h+='<h4>'+T('Nog te scheiden')+' <b>'+a.length+'</b></h4>'+(a.length?'<ul class="apl">'+a.map(function(c){return row(c,t('nog {0} dagen',WINDOW-age(c)))}).join('')+'</ul>':'<p class="hint">'+T('Niets meer te scheiden.')+'</p>');
+  h+='<h4>'+T('Nog te scheiden')+' <b>'+a.length+'</b></h4>'+(a.length?'<ul class="apl">'+a.map(function(c){return row(c,t('{0} berichten, nog {1} dagen',openMsgs(c).length,WINDOW-age(c)))}).join('')+'</ul>':'<p class="hint">'+T('Niets meer te scheiden.')+'</p>');
+  h+='<h4>'+T('Zakelijk, metagegevens nog niet vastgelegd')+' <b>'+e.length+'</b></h4>'+(e.length?'<ul class="apl">'+e.map(function(x){return row(x[0],N(x[1],'één bericht','{0} berichten'))}).join('')+'</ul>':'<p class="hint">'+T('Alles vastgelegd.')+'</p>');
   h+='<h4>'+T('Zakelijke ruimtes met berichten buiten het archief')+' <b>'+b.length+'</b></h4>'+(b.length?'<ul class="apl">'+b.map(function(c){return row(c,t(c.arch?'eerdere berichten niet vastgelegd':'geen archiefdeelnemer'))}).join('')+'</ul>':'<p class="hint">'+T('Alle zakelijke ruimtes worden gearchiveerd.')+'</p>');
-  h+='<h4>'+T('Op je telefoon, nog niet beoordeeld')+' <b>'+d.length+'</b></h4>'+(d.length?'<ul class="apl">'+d.map(function(c){return row(c,t('leg vast wat zakelijk is'))}).join('')+'</ul>':'<p class="hint">'+T('Alles beoordeeld.')+'</p>');
+  h+='<h4>'+T('Op je telefoon, nog niet beoordeeld')+' <b>'+d.length+'</b></h4>'+(d.length?'<ul class="apl">'+d.map(function(c){return row(c,t('{0} berichten te beoordelen',openMsgs(c).length))}).join('')+'</ul>':'<p class="hint">'+T('Alles beoordeeld.')+'</p>');
   return h}
 function helpHtml(c){var ch=CHB[c.ch];
   return '<h3>'+T('Help')+'</h3><div class="box"><div class="bh">'+ic('info',15)+'<b>'+T('Waar de assistent staat in {0}',ch.n)+'</b></div><p>'+T(ch.where)+'</p></div>'
-   +'<div class="box"><b>'+T('Zo werkt het')+'</b><ul class="hist">'+['Een ruimte of kanaal over werk is zakelijk. Alles wat erin staat, hoort bij het archief.','Een één-op-één-gesprek scheid je zelf: zakelijk of persoonlijk, binnen tien dagen. Daarna geldt het als zakelijk.','Persoonlijk betekent: versleuteld met je eigen sleutel en buiten het zoekbereik voor de Woo.','Verwijderen in een zakelijk gesprek haalt het bericht uit de chat, niet uit het archief.','Een bijlage is een eigen informatieobject. Het bericht verwijst ernaar, er is geen kopie.','Wat via Signal of een andere app op je telefoon gaat, leg je zelf vast. Beter: gebruik voor werk de chat van de gemeente.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div>'}
-function gesHtml(c){var ch=CHB[c.ch],k=ch.k,a=aardOf(c),sel=picked(c),h='';
+   +'<div class="box"><b>'+T('Zo werkt het')+'</b><ul class="hist">'+['Zakelijk of persoonlijk kies je per bericht: vink een of meer berichten aan en kies in de werkbalk, of klik met de rechtermuisknop op een bericht.','In een ruimte of kanaal over werk is een bericht standaard zakelijk. Een persoonlijk bericht ertussen zet je binnen tien dagen apart.','In een één-op-één-gesprek kies je zelf, binnen tien dagen. Daarna geldt een bericht als zakelijk.','Persoonlijk betekent: versleuteld met je eigen sleutel en buiten het zoekbereik voor de Woo. Contact met een inwoner is altijd zakelijk.','Bij zakelijk opent de assistent de metagegevens en het anonimiseren voor de Woo. Het anonimiseren is een voorbeeld tot je bevestigt.','Verwijderen in een zakelijk gesprek haalt het bericht uit de chat, niet uit het archief.','Een bijlage is een eigen informatieobject. Het bericht verwijst ernaar, er is geen kopie.','Wat via Signal of een andere app op je telefoon gaat, leg je zelf vast: zakelijk kiezen is daar vastleggen via het deelmenu. Beter: gebruik voor werk de chat van de gemeente.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div>'}
+function gesHtml(c){var ch=CHB[c.ch],k=ch.k,sel=picked(c),L=real(c),h='',cn=function(v){return L.filter(function(m){return ma(c,m)===v}).length};
   h+='<div class="bh"><h3>'+esc(c.lit?c.ti:t(c.ti))+'</h3></div><div class="box"><div class="bh"><span class="pill '+KP[k]+'">'+T(KL[k])+'</span><b class="hint">'+esc(ch.n)+'</b></div><dl class="kdl"><dt>'+T('Origineel')+'</dt><dd>'+T(ch.orig)+'</dd><dt>'+T('Archief')+'</dt><dd>'+T(ch.cap)+'</dd><dt>'+T('Volledigheid')+'</dt><dd>'+T(ch.vol)+'</dd><dt>'+T('Bewijskracht')+'</dt><dd>'+T(ch.kb)+'</dd></dl></div>';
-  /* aard */
-  h+='<div class="box"><b>'+T('Zakelijk of persoonlijk')+'</b>';
-  if(c.kind==='inwoner')h+='<p>'+T('Contact met een inwoner is altijd zakelijk.')+'</p>';
-  else if(!isDirect(c))h+='<p>'+T(c.kind==='extern'?'Ruimte met externe partners over werk: alles is zakelijk.':'Ruimte over werk: alles wat hier staat, is zakelijk.')+'</p>';
-  else if(k==='C'){h+=c.aard==='persoonlijk'?'<p>'+T('Je hebt dit gesprek als persoonlijk gemarkeerd. Er wordt niets vastgelegd.')+'</p><button type="button" class="btn sm" data-act="aard" data-v="">'+T('Toch beoordelen')+'</button>'
-      :'<p>'+T('Signal heeft geen archiefkoppeling. Selecteer de zakelijke berichten en leg ze vast. Is het gesprek helemaal persoonlijk, markeer het dan zo.')+'</p><button type="button" class="btn sm" data-act="aard" data-v="persoonlijk">'+ic('lock',13)+T('Helemaal persoonlijk')+'</button>'}
-  else if(!c.aard){h+='<p>'+T('Nog {0} dagen om te kiezen, tot {1}. Daarna geldt het gesprek als zakelijk.',WINDOW-age(c),fmtD(until(c)))+'</p><div class="rowb2"><button type="button" class="btn sm pri" data-act="aard" data-v="zakelijk">'+T('Zakelijk')+'</button><button type="button" class="btn sm" data-act="aard" data-v="persoonlijk">'+ic('lock',13)+T('Persoonlijk')+'</button></div>'}
-  else h+='<p>'+T(c.aard==='zakelijk'?(c.auto?'Zakelijk: na tien dagen automatisch.':'Zakelijk. Het gesprek hoort bij het archief.'):'Persoonlijk: versleuteld met je eigen sleutel, buiten het zoekbereik voor de Woo.')+'</p>'+(age(c)<WINDOW?'<button type="button" class="btn sm" data-act="aard" data-v="'+(c.aard==='zakelijk'?'persoonlijk':'zakelijk')+'">'+T('Herzien, kan tot {0}',fmtD(until(c)))+'</button>':'');
-  h+='</div>';
+  /* aard: samenvatting, keuze per bericht */
+  h+='<div class="box"><b>'+T('Zakelijk of persoonlijk')+'</b><div class="rowb2"><span class="pill p-green">'+T('{0} zakelijk',cn('zakelijk'))+'</span><span class="pill p-violet">'+T('{0} persoonlijk',cn('persoonlijk'))+'</span>'+(openMsgs(c).length?'<span class="pill p-blue">'+T('{0} nog te scheiden',openMsgs(c).length)+'</span>':'')+'</div>';
+  h+='<p class="hint">'+T(c.kind==='inwoner'?'Contact met een inwoner is altijd zakelijk.':k==='C'?'Signal heeft geen archiefkoppeling. Zakelijk kiezen is hier vastleggen via het deelmenu, met een verklaring dat de selectie juist is.':!isDirect(c)?'Ruimte over werk: berichten zijn standaard zakelijk. Een persoonlijk bericht ertussen zet je binnen tien dagen apart.':'Kies per bericht, binnen tien dagen. Daarna geldt een bericht als zakelijk.')+'</p>';
+  if(!late(c)&&c.kind!=='inwoner'&&k!=='C')h+='<p class="hint">'+ic('clock',12)+' '+T('Kiezen en herzien kan tot {0}.',fmtD(until(c)))+'</p>';
+  h+='<div class="sw'+(sel.length?'':' off')+'" role="group" aria-label="'+T('Selectie aanmerken als')+'">'+aardBtns(c,sel)+'</div>'+(sel.length?'':'<p class="hint">'+T('Selecteer berichten in het gesprek om ze aan te merken.')+'</p>')+'</div>';
   /* archiefdeelnemer */
   if(k==='A2'){var miss=c.msgs.filter(function(m){return mstate(c,m)==='none'}).length;
     h+='<div class="box"><div class="bh">'+ic('bot',15)+'<b>'+T('Archiefdeelnemer')+'</b></div>';
@@ -670,33 +725,70 @@ function gesHtml(c){var ch=CHB[c.ch],k=ch.k,a=aardOf(c),sel=picked(c),h='';
     if(c.arch&&miss)h+='<div class="note n-amber">'+ic('warn')+'<span>'+T('{0} eerdere berichten kan de archiefdeelnemer niet lezen: de sleutels zijn van vóór zijn komst. Jouw client heeft ze wel en kan ze vastleggen.',miss)+'</span></div><button type="button" class="btn sm" data-act="capprev">'+T('Eerdere berichten vastleggen vanaf jouw client')+'</button>';
     h+='</div>'}
   /* selectie */
-  h+='<div class="box"><div class="bh"><b>'+T('Selectie')+'</b>'+(sel.length?'<button type="button" class="linkbtn" data-act="clr">'+T('Wissen')+'</button>':'')+'</div>';
-  if(!sel.length)h+='<p class="hint">'+T(k==='C'?'Vink de zakelijke berichten aan en leg ze vast als één informatieobject.':'Vink berichten aan om ze in een dossier op te nemen, of om ze vast te leggen als ze nog niet in het archief staan.')+'</p>';
-  else{var unc=sel.filter(function(m){var s=mstate(c,m);return s==='none'});
-    h+='<p>'+T('{0} berichten geselecteerd',sel.length)+(unc.length?', '+T('waarvan {0} niet in het archief',unc.length):'')+'.</p>';
-    if(unc.length)h+='<button type="button" class="btn sm pri" data-act="capsel">'+ic(k==='C'?'share':'check',13)+T(k==='C'?'Delen naar MAIA: vastleggen':'Vastleggen als informatieobject')+'</button>'+(k==='C'?'<p class="hint">'+T('Je verklaart daarmee dat dit de zakelijke berichten uit het gesprek zijn. Dat komt in het register.')+'</p>':'');
-    h+='<div class="fld"><label for="f-pd">'+T('Opnemen in dossier')+'</label><select id="f-pd" data-f="pd"><option value="">'+T('Kies een dossier')+'</option>'+DOSSIERS.map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select><p class="hint">'+T('Het dossier verwijst naar de berichten; er wordt niets gekopieerd.')+'</p></div>'}
-  h+='</div>';
+  if(sel.length){var unc=sel.filter(function(m){return mstate(c,m)==='none'&&ma(c,m)==='zakelijk'});
+    h+='<div class="box"><div class="bh"><b>'+T('Selectie')+'</b><button type="button" class="linkbtn" data-act="clr">'+T('Wissen')+'</button></div><p>'+esc(N(sel.length,'Eén bericht geselecteerd','{0} berichten geselecteerd'))+(unc.length?', '+T('waarvan {0} niet in het archief',unc.length):'')+'.</p>';
+    if(unc.length&&k==='A2')h+='<button type="button" class="btn sm pri" data-act="capsel">'+ic('check',13)+T('Vastleggen als informatieobject')+'</button>';
+    h+='<div class="fld"><label for="f-pd">'+T('Opnemen in dossier')+'</label><select id="f-pd" data-f="pd"><option value="">'+T('Kies een dossier')+'</option>'+DOSSIERS.map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select><p class="hint">'+T('Het dossier verwijst naar de berichten; er wordt niets gekopieerd.')+'</p></div></div>'}
   /* koppelen */
-  if(a!=='persoonlijk'&&c.aard!=='persoonlijk'){
+  if(cn('zakelijk')||openMsgs(c).length){
     h+='<div class="box"><b>'+T('Zaak en dossiers')+'</b>';
     if(c.zaak){var z=zaakOf(c.zaak);h+='<div class="lnk">'+ic('case',14)+'<span>'+esc(c.zaak)+'<small>'+T(z?z[1]:'')+'</small></span><button type="button" data-act="unl" data-k="zaak" data-v="'+c.zaak+'" aria-label="'+T('Ontkoppelen')+'">×</button></div>'}
     else{if(c.sug&&c.sug.z)h+='<p class="hint">'+T('Voorstel: zaak {0}. {1}',c.sug.z,t(c.sug.why))+' <button type="button" class="linkbtn" data-act="sugz">'+T('Koppelen')+'</button></p>';
       h+='<div class="fld"><label for="f-z">'+T('Koppelen aan een zaak')+'</label><select id="f-z" data-f="zaak"><option value="">'+T('Kies een zaak')+'</option>'+ZAKEN.map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select></div>'}
     c.doss.forEach(function(d){var r=dosOf(d);h+='<div class="lnk">'+ic('folder',14)+'<span>'+esc(d)+'<small>'+T(r[1])+' · '+T(r[2])+'</small></span><button type="button" data-act="unl" data-k="dos" data-v="'+d+'" aria-label="'+T('Ontkoppelen')+'">×</button></div>'});
     h+='<div class="fld"><label for="f-d">'+T('Gesprek opnemen in een dossier')+'</label><select id="f-d" data-f="dos"><option value="">'+T('Kies een dossier')+'</option>'+DOSSIERS.filter(function(r){return c.doss.indexOf(r[0])<0}).map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select></div>';
-    h+='<p class="hint">'+T('De zaak komt uit het zaaksysteem, dat leidend blijft. MAIA legt de koppeling vast als kenmerk in het register.')+'</p></div>';
-    /* verslag */
+    h+='<p class="hint">'+T('Geldt voor de zakelijke berichten in het gesprek. De zaak komt uit het zaaksysteem, dat leidend blijft; MAIA legt de koppeling vast als kenmerk in het register.')+'</p></div>';
     var na=c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length;
-    h+='<div class="box"><div class="bh">'+ic('doc',15)+'<b>'+T('Gespreksverslag')+'</b></div>'+(c.vsl?'<p>'+T('Gemaakt op {0}: PDF/A-2, gewaarmerkt namens de gemeente. Het verslag verwijst naar {1} berichten in het archief.',fmtD(c.vsl),c.vsl_n)+'</p>':'<p class="hint">'+T('Een leesbare weergave van het gesprek, als eigen informatieobject met een relatie naar elk bericht. Geen kopie.')+'</p>')
-      +'<button type="button" class="btn sm" data-act="vsl"'+(na?'':' disabled')+'>'+ic('seal',13)+T(c.vsl?'Opnieuw maken':'Gespreksverslag maken')+'</button>'+(na?'':'<p class="hint">'+T('Er staan nog geen berichten van dit gesprek in het archief.')+'</p>')+'</div>';
-    /* anonimiseren */
-    if(c.kind==='inwoner')h+='<div class="box"><div class="bh">'+ic('eye',15)+'<b>'+T('Anonimiseren voor de Woo')+'</b></div><p class="hint">'+T('Naam, telefoonnummer en adres van de inwoner worden onleesbaar gemaakt. Het is een voorbeeld tot je het bevestigt.')+'</p>'
-      +(c.anonOk?'<p>'+T('Bevestigd. De geanonimiseerde versie is een eigen weergave; het origineel blijft ongewijzigd in het archief.')+'</p>':'')
-      +'<div class="rowb2"><button type="button" class="btn sm" data-act="anon" aria-pressed="'+(S.anon===c.id)+'">'+ic('eye',13)+T(S.anon===c.id?'Voorbeeld sluiten':'Voorbeeld tonen')+'</button>'+(S.anon===c.id&&!c.anonOk?'<button type="button" class="btn sm pri" data-act="anonok">'+T('Bevestigen')+'</button>':'')+'</div></div>';
-  }
-  if(c.hist.length)h+='<div class="box"><b>'+T('Geschiedenis')+'</b><ul class="hist">'+c.hist.map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div>';
+    h+='<div class="box"><div class="bh">'+ic('doc',15)+'<b>'+T('Gespreksverslag')+'</b></div>'+(c.vsl?'<p>'+T('Gemaakt op {0}: PDF/A-2, gewaarmerkt namens de gemeente. Het verslag verwijst naar {1} berichten in het archief.',fmtD(c.vsl),c.vsl_n)+'</p>':'<p class="hint">'+T('Een leesbare weergave van de zakelijke berichten, als eigen informatieobject met een relatie naar elk bericht. Geen kopie.')+'</p>')
+      +'<button type="button" class="btn sm" data-act="vsl"'+(na?'':' disabled')+'>'+ic('seal',13)+T(c.vsl?'Opnieuw maken':'Gespreksverslag maken')+'</button>'+(na?'':'<p class="hint">'+T('Er staan nog geen berichten van dit gesprek in het archief.')+'</p>')+'</div>'}
+  if(c.hist.length)h+='<div class="box"><b>'+T('Geschiedenis')+'</b><ul class="hist">'+c.hist.map(function(x){return '<li>'+hl(x)+'</li>'}).join('')+'</ul></div>';
   h+='<p class="hint mono">'+esc(c.gid)+'</p>';
+  return h}
+/* ---------- metagegevens, zoals in MIRA ---------- */
+var KC={gekozen:'g',bevestigd:'b',voorgesteld:'v',voorlopig:'v',afgeleid:'a','deels afgeleid':'a'};
+function MF(lab,ctl,kind,hint){return '<div class="mfld"><div class="mlab"><span>'+T(lab)+'</span>'+(kind?'<span class="kind k-'+KC[kind]+'">'+T(kind)+'</span>':'')+'</div>'+ctl+(hint?'<p class="hint">'+hint+'</p>':'')+'</div>'}
+function noneHtml(c,what){var p=picked(c).length;return '<h3>'+T(what)+'</h3><p class="hint">'+T(p?'De geselecteerde berichten zijn niet zakelijk. Dit geldt alleen voor zakelijke berichten.':'Selecteer een of meer zakelijke berichten, of klik met de rechtermuisknop op een bericht.')+'</p>'}
+function metaHtml(c){var L=zakSel(c),n=L.length;if(!n)return noneHtml(c,'Metagegevens');
+  var m0=L[0],M0=meta(c,m0),one=n===1,ch=CHB[c.ch],au={};L.forEach(function(m){meta(c,m);au[who(m.w).n]=1});
+  var same=function(k){return L.every(function(m){return JSON.stringify(m.meta[k])===JSON.stringify(M0[k])})};
+  var dirty=L.some(function(m){return !m.meta.saved}),skip=picked(c).length-n;
+  var h='<h3>'+T('Metagegevens')+'</h3><p class="hint">'+(one?T('Bericht van {0}, {1}',who(m0.w).n,m0.at):T('{0} zakelijke berichten. Wat je hier kiest, geldt voor alle {0}.',n))+(skip?' '+T('{0} geselecteerde berichten zijn niet zakelijk en vallen erbuiten.',skip):'')+'</p><div class="mform">';
+  h+=MF('Aard','<div class="ro">'+T('Zakelijk')+'</div>','gekozen');
+  h+=MF('Identificatie','<div class="ro mono">'+esc(one?m0.pid:t('{0} identificaties, één per bericht',n))+'</div>','afgeleid');
+  h+=MF('Naam',one?'<input class="inp" id="mf-naam" data-mf="naam" value="'+esc(M0.naam)+'">':'<div class="ro">'+T('Per bericht voorgesteld uit gesprek, datum en tijd')+'</div>',one?(M0.naamOk?'bevestigd':'voorgesteld'):'voorgesteld',one&&!M0.naamOk?T('Voorgesteld uit het gesprek en het tijdstip. Je kunt het aanpassen.'):'');
+  h+=MF('Auteur','<div class="ro">'+esc(Object.keys(au).join(', '))+'</div>','afgeleid',T('Volgt uit het account in {0}.',ch.n));
+  h+=MF('Archiefvormer','<div class="ro">'+T('Gemeente Haarlem')+'</div>','afgeleid',T('Ook bij een bericht van een externe partner: de gemeente heeft het ontvangen.'));
+  h+=MF('Gesprek','<div class="ro">'+esc(c.lit?c.ti:t(c.ti))+'</div>','afgeleid',T('Het gesprek staat als map in het register. Het bericht verwijst ernaar.'));
+  var zk=same('zaak')?M0.zaak:'';
+  h+=MF('Zaak','<select class="inp" id="mf-zaak" data-mf="zaak"><option value="">'+T(same('zaak')?'Geen zaak':'Verschillend per bericht')+'</option>'+ZAKEN.map(function(r){return '<option value="'+r[0]+'"'+(zk===r[0]?' selected':'')+'>'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select>',zk&&zk===c.zaak?'afgeleid':zk?'gekozen':'',zk&&zk===c.zaak?T('Overgenomen van het gesprek. Het zaaksysteem blijft leidend.'):T('De zaak komt uit het zaaksysteem. Hier ligt alleen de koppeling vast.'));
+  var ds=c.doss.concat(M0.doss.filter(function(d){return c.doss.indexOf(d)<0}));
+  h+=MF('Dossiers','<div class="lkd">'+ds.map(function(d){var r=dosOf(d),own=c.doss.indexOf(d)<0;return '<div class="lnk">'+ic('folder',14)+'<span>'+esc(d)+'<small>'+T(r[1])+(own?'':' · '+t('van het gesprek'))+'</small></span>'+(own?'<button type="button" data-act="mfdos" data-v="'+d+'" aria-label="'+T('Ontkoppelen')+'">×</button>':'')+'</div>'}).join('')
+    +'<select class="inp" id="mf-dos" data-mf="dos"><option value="">'+T('Dossier toevoegen')+'</option>'+DOSSIERS.filter(function(r){return ds.indexOf(r[0])<0}).map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select></div>',ds.length?'deels afgeleid':'',T('Een bericht kan in meer dossiers zitten. Het dossier verwijst naar het bericht, zonder kopie.'));
+  var ck=same('cls')?M0.cls:'',ok=L.every(function(m){return m.meta.clsOk});
+  h+=MF('Classificatie','<select class="inp" id="mf-cls" data-mf="cls">'+(ck?'':'<option value="">'+T('Verschillend per bericht')+'</option>')+Object.keys(CLS).map(function(k){return '<option value="'+k+'"'+(ck===k?' selected':'')+'>'+T(CLS[k][0])+'</option>'}).join('')+'</select>',ok?'bevestigd':'voorgesteld',ok?'':T('Voorgesteld op basis van het gesprek. Controleer en leg vast.'));
+  h+=MF('Waardering','<div class="ro">'+(ck?T(CLS[ck][1]):T('Verschillend per bericht'))+'</div>',ok?'afgeleid':'voorlopig',T('Volgt uit de classificatie. Hoort het bericht bij meer zaken of dossiers, dan gaat de langste termijn voor.'));
+  var wk=same('woo')?M0.woo:null;
+  h+=MF('Woo-categorie','<select class="inp" id="mf-woo" data-mf="woo"><option value=""'+(wk===''?' selected':'')+'>'+T('Geen categorie: alleen openbaar op verzoek')+'</option>'+WOOCAT.map(function(x){return '<option value="'+esc(x)+'"'+(wk===x?' selected':'')+'>'+T(x)+'</option>'}).join('')+'</select>',wk?'gekozen':'',T('Met een categorie wordt het bericht uit zichzelf openbaar gemaakt, na de bedenktijd en het anonimiseren. Zonder categorie alleen op verzoek.'));
+  var bk=same('bep')?M0.bep:'';
+  h+=MF('Beperking','<select class="inp" id="mf-bep" data-mf="bep">'+BEP.map(function(x){return '<option value="'+x+'"'+(bk===x?' selected':'')+'>'+T(x)+'</option>'}).join('')+'</select>',M0.bepSet?'gekozen':'voorgesteld',T('Vertrouwelijk betekent versleuteld in de opslag.'));
+  var tr=L.reduce(function(a,m){m.meta.tref.forEach(function(x){if(a.indexOf(x)<0)a.push(x)});return a},[]),sug=(TREFS[c.id]||[]).filter(function(x){return tr.indexOf(x)<0});
+  h+=MF('Trefwoorden','<div class="gchips">'+tr.map(function(x){return '<span class="pill p-grey">'+esc(x)+' <button type="button" data-act="untref" data-v="'+esc(x)+'" aria-label="'+T('Verwijderen')+'">×</button></span>'}).join('')+'</div><input class="inp" id="mf-tref" data-mf="tref" placeholder="'+T('Typ en druk op Enter')+'">','',sug.length?T('Suggesties:')+' '+sug.map(function(x){return '<button type="button" class="linkbtn" data-act="tref" data-v="'+esc(x)+'">'+esc(x)+'</button>'}).join(' · '):'');
+  h+='</div><div class="rowb2"><button type="button" class="btn pri sm" data-act="msave"'+(dirty?'':' disabled')+'>'+T('Vastleggen')+'</button>'+(dirty?'':'<span class="pill p-green">'+T('Vastgelegd')+'</span>')+'<button type="button" class="btn sm" data-act="pm" data-v="anon">'+ic('eye',13)+T('Naar anonimiseren')+'</button></div>';
+  return h}
+/* ---------- anonimiseren ---------- */
+function anonPane(c){var L=zakSel(c),n=L.length;if(!n)return noneHtml(c,'Anonimiseren voor de Woo');
+  var h='<h3>'+T('Anonimiseren voor de Woo')+'</h3><p class="hint">'+T('De assistent stelt voor wat onleesbaar wordt. Zet een vondst uit als hij niet weg hoeft, of voeg toe wat hij miste. Het is een voorbeeld tot je bevestigt; het origineel blijft ongewijzigd in het archief.')+'</p>';
+  h+='<div class="rowb2"><button type="button" class="btn sm" data-act="anonview" aria-pressed="'+(S.anon===c.id)+'">'+ic('eye',13)+T(S.anon===c.id?'Voorbeeld in het gesprek sluiten':'Voorbeeld in het gesprek tonen')+'</button></div>';
+  L.slice(0,6).forEach(function(m){var H=hits(c,m),mw=metaWho(c,m);
+    h+='<div class="box"><div class="bh"><b>'+esc(who(m.w).n)+' · '+esc(m.at)+'</b>'+(m.anonOk?'<span class="pill p-green">'+T('Bevestigd')+'</span>':'<span class="pill p-amber">'+T('Voorbeeld')+'</span>')+'</div>'
+      +'<p class="mtx" style="font-size:13px">'+anonHtml(mask(c,m,raw(c,m)))+'</p>'
+      +(H.length?'<ul class="anl">'+H.map(function(x){return '<li><label><input type="checkbox" data-anx="'+m.id+'" data-v="'+esc(x.v)+'"'+(x.on?' checked':'')+'><span class="pill p-grey">'+T(ANL[x.k])+'</span><span>'+esc(x.v)+'</span></label></li>'}).join('')+'</ul>':'<p class="hint">'+T('Niets gevonden in de tekst.')+'</p>')
+      +'<div class="anadd"><input class="inp" id="ana-'+m.id+'" data-ana="'+m.id+'" placeholder="'+T('Gemist? Typ het woord uit het bericht')+'"><button type="button" class="btn sm" data-act="anadd" data-id="'+m.id+'">'+T('Toevoegen')+'</button></div>'
+      +'<p class="hint">'+T('Afzender in de metagegevens:')+' <b>'+esc(mw[0])+'</b>. '+T(mw[1])+'</p></div>'});
+  if(n>6)h+='<p class="hint">'+T('En nog {0} berichten, met dezelfde regels.',n-6)+'</p>';
+  var all=L.every(function(m){return m.anonOk});
+  h+='<div class="rowb2"><button type="button" class="btn pri sm" data-act="anonok"'+(all?' disabled':'')+'>'+T(n===1?'Bevestigen':'Alle {0} bevestigen',n)+'</button>'+(all?'<span class="pill p-green">'+T('Bevestigd')+'</span>':'')+'</div>';
+  h+='<p class="hint">'+T('Ook de metagegevens in de publicatie worden geanonimiseerd, zodat het bericht op het zoekportaal vindbaar is zonder persoonsgegevens.')+'</p>';
   return h}
 
 /* ---------- kanalen ---------- */
@@ -809,6 +901,7 @@ function render(){CONV.forEach(auto);var n=cnt();
   document.getElementById('win').innerHTML=({chat:chatView,kan:kanView,arch:archView,tech:techView,groei:groeiView})[S.view]();
   document.getElementById('hood').innerHTML='<b>'+T('Onder de motorkap')+'</b><code>'+esc(S.wire)+'</code>';
   document.getElementById('foot').innerHTML='<span>MAIA · '+T('demo versie {0}, {1}',DEMO.v,DEMO.d)+'</span><span>'+T('Onderdeel van XENA, naast de opslag, MIRA, TINA en ELSA.')+'</span><span>'+T('Alle voorbeeldgegevens zijn verzonnen.')+'</span>';
+  document.getElementById('cmh').innerHTML=S.view==='chat'?cmHtml():'';
   var sa=document.getElementById('selall');if(sa)sa.indeterminate=sa.dataset.ind==='1';
   modal()}
 function w(s){S.wire=s}
@@ -820,35 +913,62 @@ function capWire(c,m){var ch=CHB[c.ch],k=ch.k,st=mstate(c,m);
   if(c.ch==='slack')return 'chat.postMessage → ok · Events API message → '+wt('brug')+' → Nextcloud → '+wt('register')+' '+m.pid+' ('+wt('kopie')+')';
   if(c.ch==='wa')return 'POST /{phone-number-id}/messages (Cloud API) → 200 · '+wt('brug')+' → Nextcloud → '+wt('register')+' '+m.pid+' ('+wt('kopie')+')';
   return 'Signal: '+wt('verstuurd vanaf het toestel')+' · '+wt('niet in het archief tot je het vastlegt')}
+function cur(){return BY[S.sel]}
+function msgById(c,id){return c.msgs.filter(function(m){return m.id===id})[0]}
+function targets(c){return S.cm?S.cm.ids.map(function(id){return msgById(c,id)}).filter(Boolean):picked(c)}
+function zall(c,f){zakSel(c).forEach(function(m){meta(c,m);f(m.meta,m);m.meta.saved=false})}
+function markWire(c,L,v){var k=CHB[c.ch].k,ids=L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'');
+  if(v==='persoonlijk')return 'PROPPATCH '+wt('register')+' '+ids+' → '+wt('aard: persoonlijk')+' · '+wt('versleuteld met jouw persoonlijke sleutel')+' · '+wt('buiten het Woo-zoekbereik');
+  if(k==='C')return wt('Deelmenu → MAIA-app')+' · '+wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' · '+wt('{0} berichten in één informatieobject',L.length)+' · '+wt('verklaring van {0}',ME.name);
+  return 'PROPPATCH '+wt('register')+' '+ids+' → '+wt('aard: zakelijk')+' · '+wt('bewaartermijn volgt uit de classificatie')+' · '+wt('Object Lock zodra de bedenktijd voorbij is')}
 var A={
-  view:function(e){S.view=e.dataset.v;w(S.view==='chat'?capWire(BY[S.sel],lastMsg(BY[S.sel])):S.view==='kan'?wt('Vier klassen, één register'):S.view==='arch'?wt('Eén object in de opslag, vier soorten aanvoer'):S.view==='tech'?wt('Elke aanvoer eindigt in een WebDAV-schrijfactie in Nextcloud'):wt('Het archief verhuist nooit; alleen de bron verandert'));render()},
-  ch:function(e){S.ch=e.dataset.v;S.sel=convs(S.ch)[0].id;S.pick={};if(S.anon&&S.anon.indexOf('ok:')<0)S.anon=null;var c=BY[S.sel];w(CHB[S.ch].n+' · '+wt(CHB[S.ch].cap));render()},
-  sel:function(e){S.sel=e.dataset.id;S.pick={};S.pm='ges';if(S.anon!==S.sel)S.anon=null;var c=BY[S.sel];w('GET /register/gesprekken/'+c.gid+' → '+wt('{0} berichten in het archief',c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length));render()},
+  view:function(e){S.view=e.dataset.v;S.cm=null;w(S.view==='chat'?capWire(cur(),lastMsg(cur())):S.view==='kan'?wt('Vier klassen, één register'):S.view==='arch'?wt('Eén object in de opslag, vier soorten aanvoer'):S.view==='tech'?wt('Elke aanvoer eindigt in een WebDAV-schrijfactie in Nextcloud'):wt('Het archief verhuist nooit; alleen de bron verandert'));render()},
+  ch:function(e){S.ch=e.dataset.v;S.sel=convs(S.ch)[0].id;S.pick={};S.anon=null;S.cm=null;if(S.pm==='meta'||S.pm==='anon')S.pm='ges';w(CHB[S.ch].n+' · '+wt(CHB[S.ch].cap));render()},
+  sel:function(e){S.sel=e.dataset.id;S.pick={};S.cm=null;S.pm='ges';if(S.anon!==S.sel)S.anon=null;var c=cur();w('GET /register/gesprekken/'+c.gid+' → '+wt('{0} berichten in het archief',c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length));render()},
   go:function(e){var c=BY[e.dataset.id];S.ch=c.ch;A.sel(e)},
   pm:function(e){S.pm=e.dataset.v;render()},
   pane:function(){S.pane=!S.pane;render()},
-  skip:function(e){S.skip=+e.dataset.v;w(S.skip?wt('Demo: {0} dagen later',S.skip)+' · '+wt('MAIA zet niet-gescheiden gesprekken na tien dagen op zakelijk'):'—');render()},
-  aard:function(e){var c=BY[S.sel],v=e.dataset.v||null;c.aard=v;c.auto=false;
-    if(v==='persoonlijk'){c.hist.push(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk':'Aangemerkt als persoonlijk en versleuteld');w(CHB[c.ch].k==='C'?wt('Register: gesprek beoordeeld als persoonlijk · niets vastgelegd'):'PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: persoonlijk')+' · '+wt('berichten versleuteld met jouw persoonlijke sleutel')+' · '+wt('buiten het Woo-zoekbereik'));toast(t(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk. Er wordt niets vastgelegd.':'Persoonlijk. Alleen jij kunt de berichten in het archief lezen.'))}
-    else if(v==='zakelijk'&&CHB[c.ch].k==='C'){c.hist.push('Aangemerkt als zakelijk');w(wt('Register: gesprek beoordeeld als zakelijk')+' · '+wt('niets in het archief tot je de berichten vastlegt'));toast(t('Zakelijk. Selecteer de zakelijke berichten en leg ze vast.'))}
-    else if(v==='zakelijk'){c.hist.push('Aangemerkt als zakelijk');w('PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: zakelijk')+' · '+wt('bewaartermijn vastgelegd')+' · '+wt('Object Lock zodra de bedenktijd voorbij is'));toast(t('Vastgelegd als zakelijk.'))}
-    else{c.hist.push('Opnieuw te beoordelen');w('—')}
+  skip:function(e){S.skip=+e.dataset.v;w(S.skip?wt('Demo: {0} dagen later',S.skip)+' · '+wt('MAIA zet niet-gescheiden berichten na tien dagen op zakelijk'):'—');render()},
+  /* zakelijk of persoonlijk, voor de selectie of het bericht onder het contextmenu */
+  mark:function(e){var c=cur(),v=e.dataset.v,k=CHB[c.ch].k,L=targets(c),done=[],blk=[];
+    L.forEach(function(m){if(v==='persoonlijk'){var b=canPers(c,m);if(b){blk.push(b);return}}
+      m.aard=v;m.auto=false;if(k==='C'&&v==='zakelijk'){m.cap=true;m.via='share'}if(v==='zakelijk')meta(c,m);done.push(m)});
+    S.cm=null;if(!done.length){toast(t(blk[0]||'Selecteer eerst een of meer berichten'));render();return}
+    var o1=done.length===1;c.hist.push([v==='zakelijk'?(k==='C'?(o1?'Eén bericht zakelijk, vastgelegd via het deelmenu':'{0} berichten zakelijk, vastgelegd via het deelmenu'):(o1?'Eén bericht aangemerkt als zakelijk':'{0} berichten aangemerkt als zakelijk')):(o1?'Eén bericht aangemerkt als persoonlijk':'{0} berichten aangemerkt als persoonlijk'),done.length]);
+    w(markWire(c,done,v));
+    if(v==='zakelijk'){S.pick={};done.forEach(function(m){S.pick[m.id]=true});S.pm='meta';S.pane=true;toast(N(done.length,'Eén bericht zakelijk. Vul de metagegevens aan en kijk naar het anonimiseren.','{0} berichten zakelijk. Vul de metagegevens aan en kijk naar het anonimiseren.'))}
+    else toast(N(done.length,'Eén bericht persoonlijk. Alleen jij kunt het in het archief lezen.','{0} berichten persoonlijk. Alleen jij kunt ze in het archief lezen.')+(blk.length?' '+N(blk.length,'Eén bericht niet, omdat dat niet meer kan.','{0} niet, omdat dat niet meer kan.'):''));
     render()},
-  invite:function(){var c=BY[S.sel];c.arch=true;c.archFrom=c.msgs.length;addMsg(c,{w:'arc',at:fmtT(now()),tx:'Archief · Gemeente Haarlem doet mee aan deze ruimte. Nieuwe berichten worden gearchiveerd.',sys:true});c.hist.push('Archiefdeelnemer uitgenodigd');
+  cmmeta:function(){var c=cur();S.pick={};S.cm.ids.forEach(function(id){S.pick[id]=true});S.cm=null;S.pm='meta';S.pane=true;render()},
+  cmanon:function(){var c=cur();S.pick={};S.cm.ids.forEach(function(id){S.pick[id]=true});S.cm=null;S.pm='anon';S.pane=true;render()},
+  cmpick:function(){var id=S.cm.ids[0];if(S.pick[id])delete S.pick[id];else S.pick[id]=true;S.cm=null;render()},
+  cmall:function(){var c=cur();S.pick={};real(c).forEach(function(m){S.pick[m.id]=true});S.cm=null;render()},
+  invite:function(){var c=cur();c.arch=true;c.archFrom=c.msgs.length;addMsg(c,{w:'arc',at:fmtT(now()),tx:'Archief · Gemeente Haarlem doet mee aan deze ruimte. Nieuwe berichten worden gearchiveerd.',sys:true});c.hist.push('Archiefdeelnemer uitgenodigd');
     w('POST /_matrix/client/v3/rooms/…/invite {"user_id":"@archief:haarlem.gemeente.org"} → 200 · '+wt('lid van de ruimte, zichtbaar voor iedereen')+' · '+wt('sleutels in de sleutelkluis'));toast(t('De archiefdeelnemer doet mee. Nieuwe berichten komen in het archief; eerdere berichten kan hij niet lezen.'));render()},
-  capprev:function(){var c=BY[S.sel],n=0;c.msgs.forEach(function(m){if(mstate(c,m)==='none'){m.cap=true;m.via='client';n++}});c.hist.push('Eerdere berichten vastgelegd vanaf de client');
+  capprev:function(){var c=cur(),n=0;c.msgs.forEach(function(m){if(mstate(c,m)==='none'){m.cap=true;m.via='client';n++}});c.hist.push('Eerdere berichten vastgelegd vanaf de client');
     w(wt('Client ontsleutelt {0} berichten met de eigen sleutels',n)+' · '+wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' · '+wt('herkomst: vastgelegd door {0}',ME.name));toast(t('{0} eerdere berichten vastgelegd.',n));render()},
-  capsel:function(){var c=BY[S.sel],L=picked(c).filter(function(m){return mstate(c,m)==='none'}),k=CHB[c.ch].k;L.forEach(function(m){m.cap=true;m.via=k==='C'?'share':'client'});if(k==='C'&&!c.aard)c.aard='zakelijk';
-    c.hist.push(k==='C'?'Selectie vastgelegd via het deelmenu, met verklaring':'Selectie vastgelegd vanaf de client');S.pick={};
-    w((k==='C'?wt('Deelmenu → MAIA-app')+' · ':'')+wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' nl.haarlem.io:'+hex(4,L.length*91+7)+'-… · '+wt('{0} berichten in één informatieobject',L.length)+(k==='C'?' · '+wt('verklaring van {0}',ME.name):''));toast(t('{0} berichten vastgelegd als informatieobject.',L.length));render()},
-  clr:function(){S.pick={};render()},
-  sugz:function(){var c=BY[S.sel];link(c,'zaak',c.sug.z)},
-  unl:function(e){var c=BY[S.sel],k=e.dataset.k,v=e.dataset.v;if(k==='zaak'){c.zaak='';w('DELETE /zaken/api/v1/zaakinformatieobjecten/… → 204 · '+wt('kenmerk verwijderd uit het register'))}else{c.doss=c.doss.filter(function(d){return d!==v});w(wt('Register: verwijzing {0} → {1} ingetrokken',v,c.gid))}c.hist.push('Ontkoppeld');toast(t('Ontkoppeld van {0}.',v));render()},
-  vsl:function(){var c=BY[S.sel],n=c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length;c.vsl=now();c.vsl_n=n;c.hist.push('Gespreksverslag gemaakt');
+  capsel:function(){var c=cur(),L=picked(c).filter(function(m){return mstate(c,m)==='none'});L.forEach(function(m){m.cap=true;m.via='client'});
+    c.hist.push('Selectie vastgelegd vanaf de client');
+    w(wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' nl.haarlem.io:'+hex(4,L.length*91+7)+'-… · '+wt('{0} berichten in één informatieobject',L.length));toast(t('{0} berichten vastgelegd als informatieobject.',L.length));render()},
+  clr:function(){S.pick={};S.cm=null;render()},
+  sugz:function(){link(cur(),'zaak',cur().sug.z)},
+  unl:function(e){var c=cur(),k=e.dataset.k,v=e.dataset.v;if(k==='zaak'){c.zaak='';w('DELETE /zaken/api/v1/zaakinformatieobjecten/… → 204 · '+wt('kenmerk verwijderd uit het register'))}else{c.doss=c.doss.filter(function(d){return d!==v});w(wt('Register: verwijzing {0} → {1} ingetrokken',v,c.gid))}c.hist.push('Ontkoppeld');toast(t('Ontkoppeld van {0}.',v));render()},
+  vsl:function(){var c=cur(),n=c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length;c.vsl=now();c.vsl_n=n;c.hist.push('Gespreksverslag gemaakt');
     w('GET /register/gesprekken/'+c.gid+'/berichten → '+n+' · '+wt('weergave als PDF/A-2')+' · '+wt('waarmerk namens de gemeente')+' · '+wt('relatie naar elk bericht, geen kopie'));toast(t('Gespreksverslag gemaakt en gewaarmerkt.'));render()},
-  anon:function(){var c=BY[S.sel];S.anon=S.anon===c.id?null:c.id;if(S.anon)w(wt('Voorbeeld van anonimiseren')+' · '+wt('naam, telefoonnummer en adres van de inwoner')+' · '+wt('nog niet bevestigd'));render()},
-  anonok:function(){var c=BY[S.sel];c.anonOk=true;c.hist.push('Anonimiseren bevestigd');w('POST /register/'+c.gid+'/weergaven {"soort":"geanonimiseerd"} → 201 · '+wt('origineel ongewijzigd'));toast(t('Bevestigd. De geanonimiseerde weergave is klaar voor de Woo.'));render()},
-  send:function(){var f=document.getElementById('cmp'),v=(f&&f.value||'').trim(),c=BY[S.sel];if(!v){if(f)f.focus();return}
+  /* metagegevens */
+  msave:function(){var c=cur(),L=zakSel(c);L.forEach(function(m){var x=meta(c,m);x.saved=true;x.naamOk=true;x.clsOk=true});c.hist.push([L.length===1?'Metagegevens vastgelegd voor één bericht':'Metagegevens vastgelegd voor {0} berichten',L.length]);
+    var x=L[0].meta;w('PROPPATCH '+wt('register')+' '+L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'')+' → '+wt('classificatie: {0}',t(CLS[x.cls][0]))+' · '+wt('waardering: {0}',t(CLS[x.cls][1]))+' · '+wt('beperking: {0}',t(x.bep))+(x.woo?' · '+wt('Woo-categorie: {0}',t(x.woo)):'')+(x.zaak?' · '+wt('zaak {0}',x.zaak):''));
+    toast(N(L.length,'Metagegevens vastgelegd voor één bericht.','Metagegevens vastgelegd voor {0} berichten.'));render()},
+  tref:function(e){var v=e.dataset.v;zall(cur(),function(x){if(x.tref.indexOf(v)<0)x.tref.push(v)});render()},
+  untref:function(e){var v=e.dataset.v;zall(cur(),function(x){x.tref=x.tref.filter(function(y){return y!==v})});render()},
+  mfdos:function(e){var v=e.dataset.v;zall(cur(),function(x){x.doss=x.doss.filter(function(d){return d!==v})});render()},
+  /* anonimiseren */
+  anonview:function(){var c=cur();S.anon=S.anon===c.id?null:c.id;if(S.anon)w(wt('Voorbeeld van anonimiseren')+' · '+wt('alleen de zakelijke berichten')+' · '+wt('nog niet bevestigd'));render()},
+  anadd:function(e){var c=cur(),m=msgById(c,e.dataset.id),f=document.getElementById('ana-'+m.id),v=(f&&f.value||'').trim();if(!v)return;
+    if(raw(c,m).indexOf(v)<0){toast(t('Niet gevonden in het bericht.'));return}m.anadd=(m.anadd||[]).concat([v]);m.anonOk=false;w(wt('Toegevoegd aan het anonimiseren: {0}',v));render()},
+  anonok:function(){var c=cur(),L=zakSel(c);L.forEach(function(m){m.anonOk=true});c.hist.push([L.length===1?'Anonimiseren bevestigd voor één bericht':'Anonimiseren bevestigd voor {0} berichten',L.length]);
+    w('POST /register/'+L[0].pid+'/weergaven {"soort":"geanonimiseerd"} → 201 · '+wt('ook de metagegevens')+' · '+wt('origineel ongewijzigd'));toast(t('Bevestigd. De geanonimiseerde weergave is klaar voor de Woo.'));render()},
+  send:function(){var f=document.getElementById('cmp'),v=(f&&f.value||'').trim(),c=cur();if(!v){if(f)f.focus();return}
     var m=addMsg(c,{w:'me',at:fmtT(now()),tx:v,lit:true});w(capWire(c,m));render();var g=document.getElementById('cmp');if(g)g.focus();var L=document.querySelector('.msgs');if(L)L.scrollTop=L.scrollHeight},
   ah:function(e){S.ah=+e.dataset.i;w(wt(SEQ[S.ah].t)+' · '+wt('{0} stappen',SEQ[S.ah].s.length));render()},
   colofon:function(){S.colo=true;render()},
@@ -857,21 +977,45 @@ var A={
 function addMsg(c,m){var i=c.msgs.length;m.id=c.id+'-'+i;m.n=i;m.pid=pidOf(c.id,i);c.msgs.push(m);return m}
 function link(c,k,v){if(!v)return;if(k==='zaak'){c.zaak=v;c.hist.push('Gekoppeld aan een zaak');w('POST /zaken/api/v1/zaakinformatieobjecten → 201 · '+wt('zaak {0} als kenmerk in het register',v)+' · '+wt('het zaaksysteem blijft leidend'));toast(t('Gekoppeld aan zaak {0}.',v))}
   else{if(c.doss.indexOf(v)<0)c.doss.push(v);c.hist.push('Opgenomen in een dossier');w(wt('Register: verwijzing {0} → {1}',v,c.gid)+' · '+wt('geen kopie'));toast(t('Opgenomen in dossier {0}.',v))}render()}
+var MFL={naam:'Naam',zaak:'Zaak',dos:'Dossiers',cls:'Classificatie',woo:'Woo-categorie',bep:'Beperking'};
 document.addEventListener('click',function(ev){if(ev.target.id==='layer'&&S.colo){S.colo=false;render();return}
-  var e=ev.target.closest&&ev.target.closest('[data-act]');if(!e||e.disabled)return;var f=A[e.dataset.act];if(f)f(e)});
-document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&S.colo){S.colo=false;render();return}
-  if(ev.key==='Enter'&&ev.target.id==='cmp'){ev.preventDefault();A.send()}});
+  var e=ev.target.closest&&ev.target.closest('[data-act]');
+  if(S.cm&&!(ev.target.closest&&ev.target.closest('.cmenu'))){S.cm=null;if(!e){render();return}}
+  if(!e||e.disabled)return;var f=A[e.dataset.act];if(f)f(e)});
+document.addEventListener('contextmenu',function(ev){var r=ev.target.closest&&ev.target.closest('.mr');if(!r||S.view!=='chat')return;ev.preventDefault();var id=r.dataset.mid,c=cur();
+  var ids=S.pick[id]?picked(c).map(function(m){return m.id}):[id];if(!S.pick[id]){S.pick={};S.pick[id]=true}
+  var x=ev.clientX,y=ev.clientY;if(!x&&!y){var b=r.getBoundingClientRect();x=b.left+40;y=b.top+24}
+  S.cm={ids:ids,x:x,y:y,from:id};render();openCm()});
+function openCm(){var m=document.querySelector('.cmenu');if(!m)return;var b=m.getBoundingClientRect(),W=innerWidth,H=innerHeight;if(b.right>W-8)m.style.left=Math.max(8,W-b.width-8)+'px';if(b.bottom>H-8)m.style.top=Math.max(8,H-b.height-8)+'px';var f=m.querySelector('button:not([disabled])');if(f)f.focus()}
+function closeCm(){var id=S.cm&&S.cm.from;S.cm=null;render();var b=id&&document.querySelector('[data-pick="'+id+'"]');if(b)b.focus()}
+window.addEventListener('scroll',function(){if(S.cm){S.cm=null;render()}},true);
+document.addEventListener('keydown',function(ev){var e=ev.target;
+  if(S.cm){if(ev.key==='Escape'){ev.preventDefault();closeCm();return}
+    if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){ev.preventDefault();var B=[].slice.call(document.querySelectorAll('.cmenu button:not([disabled])')),i=B.indexOf(document.activeElement);i=(i+(ev.key==='ArrowDown'?1:B.length-1))%B.length;if(B[i])B[i].focus();return}
+    if(ev.key==='Tab'){ev.preventDefault();return}}
+  if(ev.key==='Escape'&&S.colo){S.colo=false;render();return}
+  if(ev.key==='Enter'&&e.id==='cmp'){ev.preventDefault();A.send();return}
+  if(ev.key==='Enter'&&e.id==='mf-tref'){ev.preventDefault();var v=e.value.trim();if(v){A.tref({dataset:{v:v}});var g=document.getElementById('mf-tref');if(g)g.focus()}return}
+  if(ev.key==='Enter'&&e.dataset&&e.dataset.ana){ev.preventDefault();A.anadd({dataset:{id:e.dataset.ana}});return}});
 document.addEventListener('change',function(ev){var e=ev.target;
   if(e.id==='lang'){setLang(e.value,true);render();return}
-  if(e.id==='selall'){var cc=BY[S.sel];S.pick={};if(e.checked)cc.msgs.forEach(function(m){if(!m.sys)S.pick[m.id]=true});render();return}
+  if(e.id==='selall'){var cc=cur();S.pick={};if(e.checked)real(cc).forEach(function(m){S.pick[m.id]=true});render();return}
   if(e.dataset&&e.dataset.pick){if(e.checked)S.pick[e.dataset.pick]=true;else delete S.pick[e.dataset.pick];render();return}
-  if(e.dataset&&e.dataset.f){var c=BY[S.sel],k=e.dataset.f,v=e.value;if(!v)return;
-    if(k==='pd'){var L=picked(c);c.hist.push('Selectie opgenomen in een dossier');S.pick={};w(wt('Register: dossier {0} verwijst naar {1} berichten',v,L.length)+' · '+L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'')+' · '+wt('geen kopie'));toast(t('{0} berichten opgenomen in dossier {1}.',L.length,v));render();return}
-    link(c,k==='zaak'?'zaak':'dos',v)}});
-var EXTRA=['Na tien dagen automatisch zakelijk','Aangemerkt als persoonlijk en versleuteld','Gemarkeerd als persoonlijk','Aangemerkt als zakelijk','Opnieuw te beoordelen','Archiefdeelnemer uitgenodigd','Eerdere berichten vastgelegd vanaf de client','Selectie vastgelegd via het deelmenu, met verklaring','Selectie vastgelegd vanaf de client','Ontkoppeld','Gespreksverslag gemaakt','Anonimiseren bevestigd','Gekoppeld aan een zaak','Opgenomen in een dossier','Selectie opgenomen in een dossier','telefoonnummer','naam','adres'];
+  if(e.dataset&&e.dataset.mf){var c=cur(),k=e.dataset.mf,v=e.value;if(k==='tref')return;
+    if(k==='naam'){var m=zakSel(c)[0];meta(c,m);m.meta.naam=v;m.meta.naamOk=true;m.meta.saved=false}
+    else if(k==='dos'){if(!v)return;zall(c,function(x){if(x.doss.indexOf(v)<0)x.doss.push(v)})}
+    else zall(c,function(x){x[k]=v;if(k==='cls')x.clsOk=true;if(k==='bep')x.bepSet=true});
+    w(wt('Metagegevens gewijzigd: {0}',t(MFL[k]))+' · '+wt('nog niet vastgelegd'));render();return}
+  if(e.dataset&&e.dataset.anx){var c2=cur(),m2=msgById(c2,e.dataset.anx);m2.anx=m2.anx||{};if(e.checked)delete m2.anx[e.dataset.v];else m2.anx[e.dataset.v]=false;m2.anonOk=false;
+    w(wt(e.checked?'Weer onleesbaar: {0}':'Blijft leesbaar: {0}',e.dataset.v)+' · '+wt('nog niet bevestigd'));render();return}
+  if(e.dataset&&e.dataset.f){var c3=cur(),k3=e.dataset.f,v3=e.value;if(!v3)return;
+    if(k3==='pd'){var L=picked(c3);c3.hist.push([L.length===1?'Eén bericht opgenomen in een dossier':'Eén bericht opgenomen in een dossier','{0} berichten opgenomen in een dossier','Eén bericht zakelijk, vastgelegd via het deelmenu','Eén bericht aangemerkt als zakelijk','Eén bericht aangemerkt als persoonlijk','Metagegevens vastgelegd voor één bericht','Anonimiseren bevestigd voor één bericht',L.length]);w(wt('Register: dossier {0} verwijst naar {1} berichten',v3,L.length)+' · '+L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'')+' · '+wt('geen kopie'));toast(L.length===1?t('Eén bericht opgenomen in dossier {0}.',v3):t('{0} berichten opgenomen in dossier {1}.',L.length,v3));render();return}
+    link(c3,k3==='zaak'?'zaak':'dos',v3)}});
+var EXTRA=['Archiefdeelnemer uitgenodigd','Eerdere berichten vastgelegd vanaf de client','Selectie vastgelegd vanaf de client','Ontkoppeld','Gespreksverslag gemaakt','Gekoppeld aan een zaak','Opgenomen in een dossier','{0} berichten na tien dagen automatisch zakelijk','{0} berichten zakelijk, vastgelegd via het deelmenu','{0} berichten aangemerkt als zakelijk','{0} berichten aangemerkt als persoonlijk','Metagegevens vastgelegd voor {0} berichten','Anonimiseren bevestigd voor {0} berichten','{0} berichten opgenomen in een dossier','gekozen','bevestigd','voorgesteld','voorlopig','afgeleid','deels afgeleid','Medewerker van de gemeente: de naam gaat niet mee in de publicatie.','Bestuurder: de naam blijft openbaar.','Inwoner: de naam gaat niet mee in de publicatie.','Medewerker van een andere organisatie: alleen de organisatie gaat mee.','Contact met een inwoner is altijd zakelijk.','De bedenktijd is voorbij. Persoonlijk maken kan alleen op verzoek, bij de informatiebeheerder.','Selecteer eerst een of meer berichten','Chatbericht {0}, {1} {2}','medewerker','medewerker van {0}'];
 window.__maia={strings:function(){var o=EXTRA.slice();CH.forEach(function(c){o.push(KL[c.k],c.gen,c.orig,c.cap,c.vol,c.kb,c.where)});
   CONV.forEach(function(c){if(!c.lit)o.push(c.ti);o.push(c.sub);if(c.sug)o.push(c.sug.why);c.msgs.forEach(function(m){if(!m.lit&&!c.lit||m.sys)o.push(m.tx);if(m.ed)o.push(m.ed)})});
   Object.keys(PP).forEach(function(k){if(PP[k][1])o.push(PP[k][1])});ZAKEN.forEach(function(r){o.push(r[1])});DOSSIERS.forEach(function(r){o.push(r[1],r[2])});
+  Object.keys(CLS).forEach(function(k){o.push(CLS[k][0],CLS[k][1])});o=o.concat(WOOCAT,BEP);Object.keys(ANL).forEach(function(k){o.push(ANL[k])});Object.keys(MFL).forEach(function(k){o.push(MFL[k])});
   SEQ.forEach(function(q){o.push(q.t);o=o.concat(q.s)});GP.forEach(function(x){o.push(x.t,x.tv,x.see,x.pf,x.mk,x.ms);if(x.lab)o.push(x.lab)});VIEWS.forEach(function(v){o.push(v[1])});
   Object.keys(STL).forEach(function(k){o.push(STL[k][0])});return o},state:S,conv:CONV};
 (function(){var l='';try{l=localStorage.getItem('maia.lang')||''}catch(e){}var h=(location.hash||'').slice(1).toLowerCase();if(LANGS[h])l=h;setLang(l||'nl')})();

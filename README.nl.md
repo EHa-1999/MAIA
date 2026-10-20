@@ -10,7 +10,7 @@ MAIA hoort bij XENA, naast de demo van de opslag, MIRA (de assistent in het kant
 
 | Weergave | Wat je ziet |
 |---|---|
-| **Gesprekken** | Een chatomgeving met zeven kanalen: Nextcloud Talk, Element (MijnBureau), Tchap (LaSuite), Microsoft Teams, Slack, WhatsApp Business en Signal. Per bericht zie je of het in het archief staat. Het paneel van de Office Assistent toont per gesprek de klasse van het kanaal, de keuze zakelijk of persoonlijk, de archiefdeelnemer, vastleggen van een selectie, koppelen aan zaak en dossier, een gewaarmerkt gespreksverslag en anonimiseren voor de Woo. |
+| **Gesprekken** | Een chatomgeving met zeven kanalen: Nextcloud Talk, Element (MijnBureau), Tchap (LaSuite), Microsoft Teams, Slack, WhatsApp Business en Signal. Per bericht kies je zakelijk of persoonlijk, voor een selectie of via het contextmenu, en zie je of het in het archief staat. Bij zakelijk opent de Office Assistent de metagegevens en het anonimiseren. Het paneel toont verder per gesprek de klasse van het kanaal, de archiefdeelnemer, vastleggen van een selectie, koppelen aan zaak en dossier, een gewaarmerkt gespreksverslag en anonimiseren voor de Woo. |
 | **Kanalen** | Vier klassen: A (eigen beheer), A′ (eigen beheer, end-to-end versleuteld), B (leverancier) en C (toestel). Per kanaal waar het origineel staat, hoe XENA het krijgt, hoe volledig en met welke bewijskracht. |
 | **Architectuur** | Van werkplek via integratielaag en aanvoer per klasse naar de Nextcloud-stack van XENA, met de stappen per soort bericht. Productnamen zijn veralgemeniseerd. |
 | **Techniek** | Wat elk kanaal levert, het objectmodel voor chatberichten, drie manieren voor een archiefdeelnemer en de open standaarden. |

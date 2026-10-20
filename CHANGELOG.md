@@ -2,6 +2,15 @@
 
 Het versienummer staat in `VERSION`. Bij elke nieuwe versie: nummer ophogen, hier een regel toevoegen, `python3 build.py` draaien.
 
+## Versie 3 · 20-10-2026
+- Zakelijk of persoonlijk kies je nu per bericht, voor één bericht of voor een selectie. De knoppen in de werkbalk zijn uitgefaded zolang er niets is geselecteerd.
+- Contextmenu met de rechtermuisknop (of Shift+F10 op het selectievakje): Zakelijk, Persoonlijk, Metagegevens, Anonimiseren, Selecteren en Alles selecteren. Op een geselecteerd bericht geldt het menu voor de hele selectie.
+- Een ruimte of inwonercontact is standaard zakelijk. Een persoonlijk bericht ertussen zet je binnen tien dagen apart; inwonercontact blijft altijd zakelijk. In een één-op-één-gesprek kies je zelf; na tien dagen worden de overgebleven berichten zakelijk.
+- Na zakelijk opent de assistent de metagegevens, zoals in MIRA: aard, identificatie, naam, auteur, archiefvormer, gesprek, zaak, dossiers, classificatie, waardering, Woo-categorie, beperking en trefwoorden, elk met een label (afgeleid, voorgesteld, gekozen, bevestigd). Geldt voor alle geselecteerde zakelijke berichten tegelijk.
+- Anonimiseren per bericht: de assistent stelt naam, telefoonnummer en adres voor; vondsten uit te zetten en gemiste woorden toe te voegen. Voorbeeld tot bevestigen, ook in het gesprek zelf. De afzender wordt ook in de metagegevens geanonimiseerd, behalve bij een bestuurder.
+- Signal: zakelijk kiezen is vastleggen via het deelmenu, met een verklaring.
+- Overzicht toont ook zakelijke berichten waarvan de metagegevens nog niet zijn vastgelegd.
+
 ## Versie 2 · 20-10-2026
 - Berichten als tekstballonnen: ontvangen links, eigen berichten rechts. De selectievakjes blijven links.
 - Werkbalk boven het gesprek: Alles selecteren (met tussenstand als een deel is geselecteerd) en een schakelaar Zakelijk of Persoonlijk. Bij een ruimte, een kanaal of contact met een inwoner staat hij vast op zakelijk; na de bedenktijd kan persoonlijk alleen nog op verzoek.
