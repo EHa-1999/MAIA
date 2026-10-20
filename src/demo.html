@@ -1,0 +1,858 @@
+<title>MAIA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@400;600&display=swap">
+<style>
+/* Layout: demokader met tabbladen; vormtaal gelijk aan XENA, MIRA, TINA en ELSA. */
+:root{
+  --bg:#eaeff0; --surface:#ffffff; --surface2:#f3f7f7; --line:#d3dcde; --fg:#15262b; --muted:#536970;
+  --accent:#0d6470; --accent-fg:#ffffff; --accent-soft:#dcedef; --sel:#e2f0f2;
+  --amber:#8f5400; --amber-soft:#fbefd6; --red:#a8261d; --red-soft:#fbe3e0;
+  --violet:#5b3fa6; --violet-soft:#ebe5f8; --green:#1b6f3f; --green-soft:#def2e5; --blue:#2c5c9c; --blue-soft:#e1eaf7;
+  --app:#0f6cbd; --shadow:0 10px 30px rgba(10,40,46,.18);
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#162023; --surface2:#1c292d; --line:#2c3c41; --fg:#e4eced; --muted:#93a7ad;
+  --accent:#58b9c7; --accent-fg:#06272c; --accent-soft:#17383e; --sel:#1b3a40;
+  --amber:#f0b656; --amber-soft:#3a2c10; --red:#f28b82; --red-soft:#3d1c19;
+  --violet:#b7a2f0; --violet-soft:#2a2244; --green:#6fcf97; --green-soft:#163322; --blue:#8fb6ec; --blue-soft:#1a2b45;
+  --app:#6cb0f0; --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#162023; --surface2:#1c292d; --line:#2c3c41; --fg:#e4eced; --muted:#93a7ad;
+  --accent:#58b9c7; --accent-fg:#06272c; --accent-soft:#17383e; --sel:#1b3a40;
+  --amber:#f0b656; --amber-soft:#3a2c10; --red:#f28b82; --red-soft:#3d1c19;
+  --violet:#b7a2f0; --violet-soft:#2a2244; --green:#6fcf97; --green-soft:#163322; --blue:#8fb6ec; --blue-soft:#1a2b45;
+  --app:#6cb0f0; --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark }
+
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4,p,dl,dd,ul,ol{margin:0}
+ul,ol{padding:0;list-style:none}
+svg{display:block;flex:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.shell{display:flex;flex-direction:column;gap:10px;padding-block:12px;padding-inline:16px;max-width:1360px;margin-inline:auto}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.ttl{flex:1 1 240px;min-width:0}
+.ttl h1{font-size:17px;font-weight:600}
+.ttl h1 small{font-size:12px;font-weight:500;color:var(--muted);margin-left:10px;white-space:nowrap}
+.ttl .sub{color:var(--muted);font-size:12.5px}
+.seg{display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.seg button{padding:6px 12px;border-radius:6px;font-weight:500;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.lang{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.linkbtn{color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;border:1px solid var(--line);font-weight:500;background:var(--surface);white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--sel)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.pri:hover:not(:disabled){filter:brightness(1.08);background:var(--accent)}
+.btn.sm{padding:3px 9px;font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:500;line-height:18px;white-space:nowrap}
+.p-green{background:var(--green-soft);color:var(--green)} .p-amber{background:var(--amber-soft);color:var(--amber)}
+.p-red{background:var(--red-soft);color:var(--red)} .p-violet{background:var(--violet-soft);color:var(--violet)}
+.p-blue{background:var(--blue-soft);color:var(--blue)} .p-grey{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.hint{font-size:12.5px;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
+.regie{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:6px 12px;background:var(--surface);border:1px dashed var(--muted);border-radius:8px;font-size:12.5px;color:var(--muted)}
+.regie b{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.regie .seg button{padding:3px 10px;font-size:12.5px}
+.win{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(10,40,46,.10)}
+.page{padding:20px 22px 26px;display:grid;gap:16px}
+.page h2{font-size:19px;font-weight:600;text-wrap:balance}
+.lead{max-width:72ch;color:var(--muted)}
+.note{border-radius:8px;padding:9px 12px;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.n-amber{background:var(--amber-soft);color:var(--amber)} .n-violet{background:var(--violet-soft);color:var(--violet)} .n-green{background:var(--green-soft);color:var(--green)} .n-grey{background:var(--surface2);color:var(--fg)} .n-red{background:var(--red-soft);color:var(--red)}
+.note span{color:var(--fg)} .note svg{margin-top:2px}
+
+/* mailprogramma */
+.mc-top{display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--app);color:#fff;font-size:12.5px;flex-wrap:wrap}
+.mc-top b{font-weight:600}.mc-top .acc{margin-left:auto;opacity:.92}
+.mc-bar{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);background:var(--surface2)}
+.mc-bar .sep{width:1px;height:20px;background:var(--line);margin-inline:4px}
+.tb{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:5px;font-size:12.5px;color:var(--fg)}
+.tb:hover:not(:disabled){background:var(--sel)} .tb:disabled{opacity:.45;cursor:default} .tb svg{color:var(--app)}
+.mc-bar select{padding:4px 6px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font-size:12.5px}
+.mc-bar input[type=search]{flex:1 1 200px;min-width:0;padding:5px 9px;border:1px solid var(--line);border-radius:5px;background:var(--surface)}
+.mc{display:grid;grid-template-columns:190px 290px minmax(0,1fr) 340px;min-height:580px}.mc.nopane{grid-template-columns:190px 300px minmax(0,1fr)}
+.tag{font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px}.tag::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor}
+.t-amber{color:var(--amber)}.t-green{color:var(--green)}.t-violet{color:var(--violet)}
+.tb[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ap{display:flex;border-left:1px solid var(--line);background:color-mix(in srgb,var(--accent-soft) 30%,var(--surface));min-width:0;max-height:640px}
+.ap.off{display:block;background:var(--surface2);overflow:auto}
+.apm{flex:1;min-width:0;overflow:auto}
+.aph{position:sticky;top:0;display:flex;gap:9px;align-items:center;padding:8px 12px;background:var(--accent-soft);border-bottom:1px solid var(--line);border-left:3px solid var(--accent);z-index:1}
+.aph h3{font-size:13.5px}.aph p{font-size:11.5px;color:var(--muted)}.aph svg{color:var(--accent)}
+.apb{padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;font-size:13px}.apb>*{min-width:0}.apb h3{font-size:14px}.apb h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;gap:6px}.apb h4 b{color:var(--fg)}
+.apl{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}.apl li{min-width:0}.apl button{display:flex;gap:8px;align-items:center;justify-content:space-between;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:12.5px}.apl button span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apl button:hover{border-color:var(--accent)}
+.apl .gn{display:grid;gap:1px;text-align:left}.apl .gn small{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.apl .gs{color:var(--amber);flex:none}
+.gchips{display:flex;flex-wrap:wrap;gap:4px}.gchips button{padding:2px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:12px}.gchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.gme{display:flex;gap:9px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}.gme svg{color:var(--accent);flex:none}.gme div{flex:1;min-width:0;display:grid}.gme span{font-size:12px;color:var(--muted)}.gme .btn{padding:4px 10px;font-size:12.5px}
+.gback{justify-self:start;color:var(--accent);font-size:12.5px;padding:2px 0}.gback:hover{text-decoration:underline}
+.gcard{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}.gav{width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.gcard h3{font-size:14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.gcard p{font-size:12.5px;color:var(--muted)}
+.gdl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:12.5px}.gdl dt{color:var(--muted)}.gdl dd{margin:0;overflow-wrap:anywhere}
+.gact{display:flex;flex-wrap:wrap;gap:6px}.gact .btn{padding:5px 10px;font-size:12.5px}.gact [aria-pressed="true"] path{fill:currentColor}.gact [aria-pressed="true"]{color:var(--amber);border-color:var(--amber)}
+.gsh{display:grid;gap:6px}.gsh label{display:flex;gap:8px;align-items:center;font-size:13px}.gsh input{accent-color:var(--accent)}
+.apr{width:44px;flex:none;border-left:1px solid var(--line);background:var(--surface2);display:flex;flex-direction:column;gap:2px;padding:6px 0}
+.apr button{position:relative;height:38px;display:grid;place-items:center;color:var(--accent)}.apr button:hover{background:var(--surface)}
+.apr button[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--accent);background:var(--accent-soft)}
+.apr i{position:absolute;top:2px;right:4px;font-style:normal;font-size:9.5px;font-weight:600;background:var(--amber-soft);color:var(--amber);border-radius:99px;padding:0 4px}
+.ap .el{border:0;background:none;padding:12px 14px}.ap .meta{grid-template-columns:minmax(0,1fr)}.ap .el .q{flex-direction:column;align-items:stretch}.ap .el .q .btn{justify-content:center}
+.fold{border-right:1px solid var(--line);padding:8px 0;background:var(--surface2);font-size:13px}
+.fold h4{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 14px 4px;font-weight:600}
+.fold button{display:flex;align-items:center;gap:8px;width:100%;padding:5px 14px}
+.fold button:hover{background:var(--sel)} .fold button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.fold button span{flex:1;min-width:0} .fold button b{font-size:11.5px;font-weight:600;color:var(--app)}
+.fold .gr{padding:10px 14px 0;font-size:11.5px;color:var(--muted)}
+.list{border-right:1px solid var(--line);overflow:auto;max-height:640px}
+.mi{display:grid;gap:2px;width:100%;padding:9px 12px;border-bottom:1px solid var(--line);border-left:3px solid transparent;text-align:left}
+.mi:hover{background:var(--surface2)} .mi[aria-current="true"]{background:var(--sel);border-left-color:var(--app)}
+.mi .r1{display:flex;gap:6px;align-items:baseline}.mi .r1 b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.mi.read .r1 b{font-weight:500}
+.mi .r1 time{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.mi .sj{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi .pv{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi .st{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.empty{padding:30px 16px;color:var(--muted);text-align:center;font-size:13px}
+.read-p{overflow:auto;max-height:640px;display:flex;flex-direction:column}
+.el{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface));padding:10px 16px;display:grid;gap:8px}
+.el .h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.el .h b{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.el .q{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px}
+.el .q strong{font-weight:600}
+.el .sug{font-size:12.5px;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.fld{display:grid;gap:3px;font-size:12.5px}
+.fld label{font-weight:500}
+.fld select,.fld input{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);width:100%}
+.fld .ro{padding:5px 8px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.msg{padding:16px 18px 22px;display:grid;gap:10px}
+.msg h2{font-size:18px;font-weight:600;text-wrap:balance}
+.mh{display:grid;grid-template-columns:70px minmax(0,1fr);gap:3px 10px;font-size:13px}
+.mh dt{color:var(--muted)} .mh dd{overflow-wrap:anywhere}
+.body{font-family:var(--serif);font-size:14.5px;line-height:1.6;max-width:66ch;display:grid;gap:8px}
+.enc{border:1px dashed var(--violet);border-radius:8px;padding:16px;color:var(--violet);display:flex;gap:10px;align-items:flex-start;font-size:13.5px;background:var(--violet-soft)}
+.atts{display:flex;flex-wrap:wrap;gap:8px}
+.att{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:100%}
+.att small{display:block;color:var(--muted);font-size:11px}
+.ref{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+
+/* doorstroom */
+.steps{display:grid;gap:0}
+.stp{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.stp .dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:11px;font-weight:600;background:var(--surface)}
+.stp.done .dot{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.stp.now .dot{border-color:var(--accent);color:var(--accent)}
+.stp b{font-size:14px}.stp p{font-size:12.5px;color:var(--muted)}
+.stp time{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+.stp code{display:block;margin-top:4px;font-family:var(--mono);font-size:11.5px;background:var(--surface2);border-radius:6px;padding:6px 8px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--fg)}
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
+
+/* filters */
+.rule{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:6px}
+.rule .r1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.rule .r1 b{flex:1;min-width:0}
+.rf{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface2)}
+pre.sv{margin:0;font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.rules{display:grid;gap:8px}
+.lim{display:grid;gap:6px;font-size:13px}.lim li{display:flex;gap:8px;align-items:flex-start}
+
+/* adresboek */
+.ab{width:100%;border-collapse:collapse;font-size:13px}
+.ab th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:6px 10px;background:var(--surface2);white-space:nowrap}
+.ab td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+.ab td small{display:block;color:var(--muted);font-size:11.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.share{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;align-content:start}
+.share label{display:flex;gap:8px;align-items:center;font-size:13px}
+.share input{accent-color:var(--accent)}
+.srch{display:flex;gap:8px;flex-wrap:wrap}.srch input{flex:1 1 220px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+
+/* sleutels */
+.req{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;justify-items:start}.req dl{justify-self:stretch}
+.req dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:3px 10px;font-size:13px}.req dt{color:var(--muted)}
+.log{display:grid;gap:4px;font-size:12.5px}.log li{display:flex;gap:10px;flex-wrap:wrap;padding:6px 10px;border:1px solid var(--line);border-radius:8px}.log time{color:var(--muted);font-family:var(--mono);font-size:11.5px}
+
+/* architectuur */
+.arch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.zone{border:1.5px dashed var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:start}
+.zone>span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted)}
+.bx{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--blue-soft);display:grid;gap:2px}
+.bx b{font-size:13.5px}.bx small{font-size:12px;color:var(--muted)}
+.bx.u{background:var(--surface2)}
+.flow{display:grid;gap:6px;font-size:13px}.flow li{display:flex;gap:10px;align-items:baseline}.flow li i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--accent);flex:none;width:22px}
+.open{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.open div{border-left:3px solid var(--amber);padding:2px 0 2px 12px;display:grid;gap:3px}.open b{font-size:14px}.open span{font-size:13px;color:var(--muted)}
+
+.hood{background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:6px 12px}
+.hood b{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;flex:none}
+.hood code{flex:1 1 300px;min-width:0;font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
+.foot{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:6px;z-index:20;max-width:min(400px,calc(100% - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:8px 12px;border-radius:8px;font-size:13px;box-shadow:var(--shadow)}
+#layer:empty{display:none}
+#layer{position:fixed;inset:0;background:rgba(8,24,28,.45);display:grid;place-items:center;padding:16px;z-index:10}
+.dlg{background:var(--surface);border-radius:10px;box-shadow:var(--shadow);max-width:600px;width:100%;max-height:100%;overflow:auto;padding:18px 20px;display:grid;gap:12px}
+.dlg h2{font-size:16px}
+/* colofon */
+@property --ca{syntax:'<angle>';inherits:false;initial-value:0deg}
+.dlg.colo{max-width:640px;padding:0;gap:0;display:flex;flex-direction:column;position:relative;overflow:hidden;isolation:isolate;border:1px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,conic-gradient(from var(--ca,0deg),var(--accent),var(--violet),var(--amber),var(--green),var(--accent)) border-box;animation:clBorder 8s linear infinite}
+.colo .cfx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1;border-radius:inherit}
+.colo .cin{overflow:auto;min-height:0;flex:1}
+.colo .aur{position:absolute;inset:-40%;z-index:-1;pointer-events:none;opacity:.32;filter:blur(40px);background:radial-gradient(closest-side at 30% 30%,var(--accent),transparent 70%),radial-gradient(closest-side at 70% 40%,var(--violet),transparent 70%),radial-gradient(closest-side at 50% 75%,var(--amber),transparent 70%);animation:clAur 18s ease-in-out infinite alternate}
+.colo .sp{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:0;pointer-events:none;z-index:0;animation:clSp 6s ease-in-out infinite}
+.colo .chead{display:flex;gap:16px;align-items:center;padding:18px 18px 4px}
+.colo .seal{flex:none;width:96px;height:96px;position:relative}
+.colo .seal svg.ring{position:absolute;inset:0;animation:clSpin 28s linear infinite}
+.colo .seal text{font:600 8.4px var(--mono,monospace);letter-spacing:.18em;fill:var(--accent)}
+.colo .seal svg.core{position:absolute;inset:22px;width:52px;height:52px}
+.colo .seal .draw{stroke-dasharray:120;stroke-dashoffset:120;animation:clDraw 1.6s .3s ease-out forwards}
+.colo h2.ct{font-size:24px;margin:0;font-weight:700;letter-spacing:-.01em;background:linear-gradient(100deg,var(--fg) 20%,var(--accent) 40%,var(--violet) 50%,var(--fg) 70%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:clShine 6s ease-in-out infinite}
+.colo .csub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.colo .mb{padding:10px 18px 4px}
+.colo dl{display:grid;grid-template-columns:132px minmax(0,1fr);gap:9px 14px;margin:0;font-size:13px}
+.colo dt{color:var(--muted)}
+.colo dd{margin:0;display:flex;flex-direction:column;gap:1px;overflow-wrap:anywhere}
+.colo dd small{color:var(--muted);font-size:12px}
+.colo dd ul{list-style:disc;margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.colo dd li{display:list-item;border:0;padding:0}
+.colo dd a{color:var(--accent)}
+.colo .sel{user-select:all;font-family:var(--mono);font-size:12px}
+.colo .cl{opacity:0;transform:translateY(8px);animation:clIn .55s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i)*85ms + 250ms)}
+.colo .cnote{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;color:var(--muted);font-size:12px}
+.colo .cfoot{display:flex;justify-content:flex-end;padding:10px 18px 16px}
+@media (max-width:560px){.colo .chead{flex-direction:column;align-items:flex-start}.colo dl{grid-template-columns:1fr;gap:2px}.colo dd{margin-bottom:8px}}
+@media (prefers-reduced-motion:reduce){.dlg.colo,.colo .aur,.colo .sp,.colo .seal svg.ring,.colo h2.ct{animation:none}.colo .cl{animation:none;opacity:1;transform:none}.colo .seal .draw{animation:none;stroke-dashoffset:0}}
+@keyframes clBorder{to{--ca:360deg}}
+@keyframes clAur{0%{transform:translate(-6%,-4%) rotate(0deg) scale(1)}100%{transform:translate(6%,5%) rotate(25deg) scale(1.12)}}
+@keyframes clSp{0%{opacity:0;transform:translateY(10px) scale(.6)}30%{opacity:.8}100%{opacity:0;transform:translateY(-60px) scale(1.2)}}
+@keyframes clSpin{to{transform:rotate(360deg)}}
+@keyframes clDraw{to{stroke-dashoffset:0}}
+@keyframes clShine{0%{background-position:100% 0}100%{background-position:0 0}}
+@keyframes clIn{to{opacity:1;transform:none}}
+
+
+/* koppelen aan zaak en dossier */
+.ch{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:grid;gap:6px;justify-items:start;background:var(--surface);margin:8px 0 4px}.chh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}.chd{display:flex;gap:6px;align-items:flex-start;font-size:12.5px}.chd svg{flex:none;margin-top:2px;color:var(--accent)}
+.rv{display:grid;gap:6px;justify-items:start;width:100%}.rv h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.rv .fld,.rv textarea{width:100%}.rv textarea{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font:inherit}
+.lkw{position:relative}
+.lki{width:100%;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.lkl{position:absolute;left:0;right:0;top:calc(100% + 3px);z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:4px;display:grid;gap:2px;max-height:280px;overflow:auto}
+.lkl li[role="option"]{display:grid;gap:1px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12.5px}
+.lkl li b{font-weight:500;min-width:0}.lkl li small{color:var(--muted);font-size:11.5px}.lkl li .mono{font-size:11px}
+.lkl li[aria-selected="true"],.lkl li[role="option"]:hover{background:var(--accent-soft)}
+.lkl mark{background:var(--amber-soft);color:inherit;font-weight:600;border-radius:2px}
+.lkm{padding:6px 8px;color:var(--muted);font-size:12.5px}
+.lkm.busy::before{content:"";display:inline-block;width:10px;height:10px;margin-right:7px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:lkSpin .7s linear infinite;vertical-align:-1px}
+@keyframes lkSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.lkm.busy::before{animation:none}}
+.lkd{display:grid;gap:5px}
+.lkc{display:flex;align-items:center;gap:7px;padding:3px 3px 3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:12.5px}.lkc>span{flex:1;min-width:0;display:grid}.lkc small{color:var(--muted);font-size:11.5px}.lkc svg{color:var(--accent);flex:none}
+.lkc button{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:5px;color:var(--muted);font-size:16px;line-height:1}.lkc button:hover{background:var(--red-soft);color:var(--red)}
+.lks{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:12px;color:var(--muted)}
+.lks button{display:inline-flex;gap:4px;align-items:center;padding:1px 8px;border:1px dashed var(--accent);border-radius:99px;color:var(--accent);font-size:12px}.lks button:hover{background:var(--accent-soft)}
+.dlg .rowb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.dlg textarea{width:100%;min-height:110px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-family:var(--serif)}
+.to-list{display:grid;gap:2px;border:1px solid var(--line);border-radius:6px;max-height:150px;overflow:auto}
+.to-list button{padding:5px 9px;text-align:left;font-size:13px}.to-list button:hover{background:var(--sel)}.to-list small{color:var(--muted)}
+
+.xarch{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
+.xarch>div{display:grid;gap:0;align-content:start}.xarch h2{font-size:17px}.xarch .lead{margin:4px 0 12px}.xarch .gchips{margin-bottom:4px}
+.xtop{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch}.xcol{display:flex;flex-direction:column}.xtop>.xcol>.layer:last-child{flex:1}.conn.lab span{position:relative;background:var(--surface);border:1px dashed var(--line);color:var(--muted);border-radius:99px;padding:2px 10px;font-size:12px}
+.xtop .boxes{grid-template-columns:minmax(0,1fr)}.xcol{min-width:0}
+.harrow{align-self:center;display:grid;justify-items:center;gap:2px;padding:0 8px;max-width:84px;text-align:center;font-size:11px;color:var(--muted)}.harrow b{font-size:20px;color:var(--accent);line-height:1}
+.xconn{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.xconn>div:nth-child(2){width:100px}
+@media (max-width:640px){.xtop,.xconn{grid-template-columns:minmax(0,1fr)}.harrow{max-width:none;padding:6px 0}.harrow b{transform:rotate(90deg)}.xconn>div:nth-child(2){display:none}}
+.layer{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;background:var(--surface2)}
+.layer.key{border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.layer h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:0 0 8px}
+.layer .hint{margin-top:8px}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.layer.key .bx{background:var(--surface)}
+.conn{display:flex;justify-content:center;padding:6px 0;position:relative}
+.conn::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--line)}
+.conn button{position:relative;background:var(--surface);border:1px solid var(--accent);color:var(--accent);border-radius:99px;padding:3px 12px;font-size:12px;font-weight:500}
+.conn button:hover{background:var(--accent-soft)}
+.sq{display:grid;gap:8px;margin:12px 0 4px;counter-reset:none}
+.sq li{display:flex;gap:10px;align-items:flex-start}
+.sq .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:600}
+.sq li>div{display:grid;gap:3px;justify-items:start}.sq p{font-size:13px}
+.tgrp{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden;margin-top:12px}
+.tgrp>header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:9px 12px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.tgrp>header b{font-weight:600}
+.tgrp>header>span:not(.pill){font-size:12px;color:var(--muted);flex:1 1 260px}
+.tgrp>div:not(.trow):not(.tw0){padding:10px 12px}
+.tgrp ul{padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:13px;list-style:disc}
+.tw0{overflow-x:auto}
+.tt{border-collapse:collapse;font-size:13px;width:100%;min-width:560px}
+.tt th,.tt td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tt th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.tt tr.hl td{background:var(--accent-soft)}.tt tr.dim td{color:var(--muted)}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:4px 14px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.trow:last-child{border-bottom:0}
+.trow.hd{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.trow .fn{font-weight:500}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px;align-content:start;background:var(--surface);font-size:13px}
+.opt.pick{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.opt header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.opt h3{font-size:14px;flex:1;min-width:0}
+.opt .ok{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;flex:none}
+.pm{display:grid;gap:4px}.pm li{display:flex;gap:7px;align-items:baseline}.pm li::before{flex:none;font-weight:700;width:12px}
+.pm.plus li::before{content:"+";color:var(--green)}.pm.min li::before{content:"−";color:var(--red)}
+.gsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.gstep{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.gstep.out{border-style:dashed}
+.gstep .gnum{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gstep .gnum .pill{text-transform:none;letter-spacing:0;font-size:11px}
+.gstep h3{font-size:14px;font-weight:600;margin:4px 0 0}
+.gstep .when{font-size:11.5px;color:var(--muted)}
+.gstep dl{display:flex;flex-direction:column;gap:6px}.gstep dt{font-size:11px;color:var(--muted);font-weight:600}.gstep dd{margin:0}
+.gms{margin-top:auto;display:flex;gap:8px;align-items:flex-start;border-top:1px dashed var(--line);padding-top:8px;font-weight:500}
+.gms .dia{flex:none;width:9px;height:9px;background:var(--accent);transform:rotate(45deg);margin-top:4px}
+.gtwo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.gtwo p{font-size:13px}.tgrp .gtwo{padding:10px 12px}
+@media (max-width:1200px){.mc,.mc.nopane{grid-template-columns:170px 260px minmax(0,1fr)}.mc .ap{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);max-height:none}}
+@media (max-width:1000px){
+  .mc,.mc.nopane{grid-template-columns:minmax(0,1fr)}
+  .fold{display:flex;flex-wrap:wrap;gap:2px;border-right:0;border-bottom:1px solid var(--line);padding:6px}
+  .fold h4,.fold .gr{display:none}.fold button{width:auto;padding:5px 10px;border-radius:6px}
+  .list{border-right:0;border-bottom:1px solid var(--line);max-height:300px}.read-p{max-height:none}
+  .cols,.arch,.xarch,.opts,.gtwo{grid-template-columns:minmax(0,1fr)}
+  .page{padding:16px}
+}
+
+/* MAIA: chatomgeving in vier kolommen: kanalen, gesprekken, het gesprek en het paneel van de Office Assistent */
+.cc{display:grid;grid-template-columns:210px 270px minmax(0,1fr) 350px;min-height:600px}.cc.nopane{grid-template-columns:210px 280px minmax(0,1fr)}
+.crail{border-right:1px solid var(--line);padding:8px 0;background:var(--surface2);font-size:13px;overflow:auto;max-height:680px}
+.crail h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 14px 4px;font-weight:600}
+.crail button{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;padding:6px 14px}
+.crail button:hover{background:var(--sel)}.crail button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.crail .cd{width:10px;height:10px;border-radius:3px}.crail small{font-size:11px;font-weight:600;color:var(--muted)}
+.crail .gr{padding:10px 14px 0;font-size:11.5px;color:var(--muted)}
+.clist{border-right:1px solid var(--line);overflow:auto;max-height:680px}
+.ci{display:grid;gap:2px;width:100%;padding:9px 12px;border-bottom:1px solid var(--line);border-left:3px solid transparent;text-align:left}
+.ci>*{min-width:0}
+.ci:hover{background:var(--surface2)}.ci[aria-current="true"]{background:var(--sel);border-left-color:var(--chc,var(--accent))}
+.ci .r1{display:flex;gap:6px;align-items:baseline}.ci .r1 b{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ci .r1 time{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.ci .pv{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci .st{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.conv{display:flex;flex-direction:column;min-width:0;max-height:680px}
+.cvh{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--chc);color:#fff;flex-wrap:wrap}
+.cvh b{font-weight:600}.cvh small{opacity:.9;font-size:12px}.cvh .pn{margin-left:auto;display:flex;gap:6px;align-items:center}
+.cvh .tb{color:#fff;border:1px solid rgba(255,255,255,.5)}.cvh .tb:hover{background:rgba(255,255,255,.15)}.cvh .tb svg{color:#fff}
+.cvh .tb[aria-pressed="true"]{background:rgba(255,255,255,.25);color:#fff}
+.cvb{display:flex;gap:8px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--line);background:var(--surface2);font-size:12.5px;flex-wrap:wrap}
+.msgs{flex:1;overflow:auto;padding:10px 12px;display:grid;gap:2px;align-content:start}
+.dsep{text-align:center;font-size:11.5px;color:var(--muted);padding:6px 0;display:flex;gap:10px;align-items:center}.dsep::before,.dsep::after{content:"";flex:1;height:1px;background:var(--line)}
+.mr{display:grid;grid-template-columns:18px 32px minmax(0,1fr);gap:8px;padding:6px;border-radius:8px;align-items:start}
+.mr:hover{background:var(--surface2)}.mr.pk{background:var(--accent-soft)}
+.mr input{margin-top:9px;accent-color:var(--accent)}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.mr.me .av{background:var(--chc);color:#fff;border-color:transparent}
+.mr.bot .av{background:var(--violet-soft);color:var(--violet)}
+.mb1{display:flex;gap:4px 8px;align-items:baseline;flex-wrap:wrap;font-size:12.5px}.mb1 b{font-weight:600}.mb1 time{color:var(--muted);font-size:11.5px}.mb1 .org{color:var(--muted);font-size:11.5px}
+.mtx{font-size:14px;overflow-wrap:anywhere;margin-top:1px}
+.mtx.del{color:var(--muted);font-style:italic}
+.mtx mark{background:var(--amber-soft);color:var(--amber);border-radius:3px;padding:0 3px;font-weight:600}
+.mat{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12.5px;margin-top:5px;background:var(--surface)}
+.mat small{display:block;color:var(--muted);font-size:11px}
+.mst{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.sysm{text-align:center;font-size:12px;color:var(--violet);padding:6px 10px;margin:4px auto;background:var(--violet-soft);border-radius:99px;display:flex;gap:6px;align-items:center;justify-content:center;max-width:100%}
+.cmp{display:flex;gap:8px;padding:8px 12px;border-top:1px solid var(--line);align-items:center}
+.cmp input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.cmp .hint{flex-basis:100%}
+.cmpw{border-top:1px solid var(--line)}.cmpw .cmp{border-top:0}.cmpw>p{padding:0 12px 8px}
+.conn.multi{gap:6px;flex-wrap:wrap}
+.kdl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:12.5px}.kdl dt{color:var(--muted)}.kdl dd{margin:0}
+.box{border:1px solid var(--line);border-radius:8px;padding:9px 10px;display:grid;gap:7px;background:var(--surface);justify-items:start}.box>*{max-width:100%}
+.box .fld{width:100%}
+.bh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%}.bh b{flex:1;min-width:0}
+.rowb2{display:flex;flex-wrap:wrap;gap:6px}
+.lnk{display:flex;gap:6px;align-items:center;font-size:12.5px;padding:3px 3px 3px 8px;border:1px solid var(--line);border-radius:6px;width:100%}.lnk span{flex:1;min-width:0;display:grid}.lnk small{color:var(--muted);font-size:11.5px}
+.lnk button{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:5px;color:var(--muted);font-size:16px;line-height:1}.lnk button:hover{background:var(--red-soft);color:var(--red)}
+.hist{display:grid;gap:3px;font-size:12px;color:var(--muted)}.hist li{display:flex;gap:6px}.hist li::before{content:"·"}
+.kcards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kcard{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface);display:grid;gap:6px;align-content:start;font-size:13px;border-top:4px solid var(--kc)}
+.kcard h3{font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.kcard p{color:var(--muted)}
+.kcard ul{display:flex;flex-wrap:wrap;gap:4px}
+.chd2{display:inline-flex;gap:6px;align-items:center}.chd2 i{width:10px;height:10px;border-radius:3px;display:inline-block}
+@media (max-width:1200px){.cc,.cc.nopane{grid-template-columns:190px 250px minmax(0,1fr)}.cc .ap{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);max-height:none}.kcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){
+  .cc,.cc.nopane{grid-template-columns:minmax(0,1fr)}
+  .crail{display:flex;flex-wrap:wrap;gap:2px;border-right:0;border-bottom:1px solid var(--line);padding:6px;max-height:none}
+  .crail h4,.crail .gr{display:none}.crail button{width:auto;padding:5px 10px;border-radius:6px}
+  .clist{border-right:0;border-bottom:1px solid var(--line);max-height:280px}.conv{max-height:none}
+  .kcards{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
+<div class="shell">
+  <header class="top" id="top"></header>
+  <div class="regie" id="regie"></div>
+  <div id="win"></div>
+  <div class="hood" id="hood"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<div id="layer"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var DEMO={v:'@VERSION@',d:'@DATE@'};
+var I18N=window.I18N||{},LANG='nl',LANGS={nl:'Nederlands',de:'Deutsch',en:'English',fr:'Français'};
+function t(s){if(!s)return s==null?'':s;var d=I18N[LANG],r=s;if(LANG!=='nl'&&d){if(d[s]!==undefined)r=d[s];else if(window.__MISS)window.__MISS.add(s)}
+  for(var i=1;i<arguments.length;i++)r=r.split('{'+(i-1)+'}').join(arguments[i]);return r}
+function setLang(l,keep){LANG=(l==='nl'||I18N[l])?l:'nl';document.documentElement.lang=LANG;if(keep)try{localStorage.setItem('maia.lang',LANG)}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function T(s){return esc(t.apply(null,arguments))}
+function pad(n){return ('0'+n).slice(-2)}
+var DAY=864e5,NOW0=new Date();NOW0.setHours(14,30,0,0);
+function now(){return new Date(NOW0.getTime()+S.skip*DAY)}
+function fmtD(d){d=new Date(d);return LANG==='en'?d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear():LANG==='de'?pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear():LANG==='fr'?pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear():pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear()}
+function fmtT(d){d=new Date(d);return pad(d.getHours())+':'+pad(d.getMinutes())}
+function hex(n,seed){var s=Math.floor(seed)%2147483648,o='';for(var i=0;i<n;i++){s=(s*48271+12345)%2147483647;o+='0123456789abcdef'[s%16]}return o}
+var IC={
+  chat:'<path d="M4.5 5.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H10l-4.5 3.5v-3.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  lock:'<rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+  clock:'<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+  clip:'<path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+  info:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  warn:'<path d="M12 3.5l9.5 16.5h-19z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5M12 17v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  bot:'<rect x="5" y="8" width="14" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4.5V8M9.5 13v.5M14.5 13v.5M9.5 16.5h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+  share:'<path d="M12 15V4M8 7.5L12 3.8l4 3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 11H5.5v9h13v-9h-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  doc:'<path d="M6.5 3.5h7.5l4 4v13h-11.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 3.5v4.5h4.5M9 13h6M9 16.5h6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  case:'<rect x="3.5" y="7.5" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7.5V5.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3.5 12.5h17" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+  folder:'<path d="M3.5 7A1.5 1.5 0 0 1 5 5.5h4.2l2 2.2H19a1.5 1.5 0 0 1 1.5 1.5v8.3A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  eye:'<path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+  list:'<path d="M8.5 6.5h11M8.5 12h11M8.5 17.5h11M4.5 6.5h.5M4.5 12h.5M4.5 17.5h.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  help:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5v.4M12 17v.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+  send:'<path d="M3.5 11.5L20.5 4l-6.5 16-2.5-6.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  seal:'<circle cx="12" cy="10" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 14.5L7.5 20.5l4.5-2 4.5 2-1.5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  pane:'<rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14.5 4.5v15" stroke="currentColor" stroke-width="1.8"/>'
+};
+function ic(k,s){s=s||16;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" aria-hidden="true">'+IC[k]+'</svg>'}
+function toast(m){var e=document.createElement('div');e.className='toast';e.textContent=m;document.getElementById('toasts').appendChild(e);setTimeout(function(){e.remove()},4800)}
+
+/* ---------- kanalen ---------- */
+var KL={A:'A · eigen beheer',A2:'A′ · eigen beheer, versleuteld',B:'B · leverancier',C:'C · toestel'};
+var KS={A:'A',A2:'A′',B:'B',C:'C'};
+var KP={A:'p-green',A2:'p-blue',B:'p-amber',C:'p-red'};
+var KCV={A:'var(--green)',A2:'var(--blue)',B:'var(--amber)',C:'var(--red)'};
+var CH=[
+ {id:'talk',n:'Nextcloud Talk',k:'A',col:'#0082c9',gen:'Chatomgeving in eigen beheer',
+  orig:'Bij de gemeente, in de Nextcloud-stack van XENA',cap:'Aan de bron: Talk slaat elk bericht op in Nextcloud, dat het in het register en de objectopslag zet.',
+  vol:'Volledig',kb:'Hoog: het origineel is het archiefexemplaar',
+  where:'Het paneel staat als zijbalk naast het gesprek in Nextcloud Talk, in de browser en in de bureaubladapp.'},
+ {id:'element',n:'Element (MijnBureau)',k:'A2',col:'#0b8a66',gen:'Versleutelde chatomgeving (Matrix)',
+  orig:'Bij de gemeente, end-to-end versleuteld op de eigen Matrix-server',cap:'Via een zichtbare archiefdeelnemer in elke zakelijke ruimte, met sleutels in de sleutelkluis van de gemeente.',
+  vol:'Volledig vanaf het moment dat de archiefdeelnemer meedoet',kb:'Hoog: het archief ontvangt het bericht als deelnemer, met het oorspronkelijke event',
+  where:'Het paneel staat als widget naast de ruimte in Element. In MijnBureau en openDesk is dat dezelfde client.'},
+ {id:'tchap',n:'Tchap (LaSuite)',k:'A2',col:'#000091',gen:'Versleutelde chatomgeving (Matrix), gefedereerd',
+  orig:'Op de deelnemende Matrix-servers, end-to-end versleuteld',cap:'In een gefedereerde ruimte doet de archiefdeelnemer mee vanaf de server van de gemeente. Ook de berichten van de Franse partners worden aan de kant van de gemeente gearchiveerd.',
+  vol:'Volledig vanaf het moment dat de archiefdeelnemer meedoet',kb:'Hoog',
+  where:'De medewerkers van de gemeente zitten met Element in deze ruimte, de Franse partners met Tchap. Het paneel staat alleen bij de gemeente.'},
+ {id:'teams',n:'Microsoft Teams',k:'B',col:'#5b5fc7',gen:'Chatdienst van een leverancier',
+  orig:'Bij de leverancier, in Microsoft 365',cap:'Via Microsoft Graph: bij elk nieuw of gewijzigd bericht een melding, en een archiefwaardige kopie naar XENA. De export-API vult gaten aan.',
+  vol:'Volledig zolang de meldingen binnenkomen',kb:'Gemiddeld: het origineel staat buiten de gemeente',
+  where:'Het paneel staat als Teams-app naast het gesprek. Bestanden in Teams staan in SharePoint of OneDrive en volgen het pad van de netwerkschijven.'},
+ {id:'slack',n:'Slack',k:'B',col:'#4a154b',gen:'Chatdienst van een leverancier',
+  orig:'Bij de leverancier',cap:'Via de Events API van de eigen werkruimte: elk bericht in een gekoppeld kanaal als kopie naar XENA.',
+  vol:'Volledig voor kanalen met de archiefkoppeling',kb:'Gemiddeld: het origineel staat buiten de gemeente',
+  where:'Het paneel staat als Slack-app in het kanaal. Een gedeeld kanaal met een ketenpartner wordt alleen aan de kant van de gemeente gearchiveerd.'},
+ {id:'wa',n:'WhatsApp Business',k:'B',col:'#0f7a6c',gen:'Berichtendienst voor inwonercontact',
+  orig:'Bij de leverancier en op de telefoon van de inwoner',cap:'Via de Cloud API: elk inkomend bericht komt als webhook binnen, elk antwoord gaat via de API de deur uit. Beide als kopie naar XENA.',
+  vol:'Volledig via de Cloud API. Met de Business-app op een telefoon alleen naar beste vermogen.',kb:'Gemiddeld',
+  where:'De medewerker antwoordt in de klantcontactomgeving van de gemeente, niet in een app op de eigen telefoon. Het paneel staat daar.'},
+ {id:'signal',n:'Signal',k:'C',col:'#2f6fe0',gen:'Berichtenapp op het toestel',
+  orig:'Alleen op de toestellen van de deelnemers, end-to-end versleuteld',cap:'Er is geen archiefkoppeling. De medewerker legt zakelijke berichten zelf vast via het deelmenu van de telefoon.',
+  vol:'Zo volledig als de medewerker vastlegt',kb:'Laag tot gemiddeld: de medewerker verklaart dat de selectie juist is',
+  where:'Op de telefoon: Delen, dan MAIA. De app stuurt de selectie via de integratielaag naar XENA. In Signal zelf staat geen paneel.'}
+];
+var CHB={};CH.forEach(function(c){CHB[c.id]=c});
+
+/* ---------- gegevens: alles verzonnen ---------- */
+var ME={name:'Sanne de Vries',org:'Gemeente Haarlem',func:'Vergunningverlener'};
+var WINDOW=10;
+var PP={noor:['Noor Bakker','Gemeente Haarlem'],ruud:['Ruud Jansen','Gemeente Haarlem'],fat:['Fatima El Amrani','Gemeente Haarlem'],
+ jer:['Jeroen Smit','Gemeente Zandvoort'],lisa:['Lisa de Wit','Gemeente Heemstede'],arc:['Archief · Gemeente Haarlem','Archiefdeelnemer'],
+ mark:['Mark de Boer','Gemeente Haarlem'],eva:['Eva Visser','Gemeente Haarlem'],cam:['Camille Martin','Commune de Port-Saint-Exemple'],jul:['Julien Bernard','Région Côte-d’Exemple'],
+ kar:['Karin Vos','Gemeente Haarlem'],tom:['Tom Peeters','Gemeente Haarlem'],piet:['Pieter Hoogland','Bouwbedrijf De Vaart'],
+ graaf:['J. de Graaf','Inwoner'],bas:['Bas Mulder','Wethouder'],ilse:['Ilse Kramer',''],joost:['Joost Kok',''],me:[ME.name,ME.org]};
+var ZAKEN=[['Z-2026-004502','Omgevingsvergunning Kleverlaan 14'],['Z-2026-003981','Bezwaar leges dakkapel Kleverlaan 30'],['Z-2026-007015','Terrasvergunningen Houtplein 2027'],['Z-2026-006233','Bezwaar omgevingsvergunning Kleverlaan 12'],['Z-2026-005120','Evenementenvergunning circuit 2027']];
+var DOSSIERS=[['P-2026-031','Herinrichting Houtplein','Projectdossier'],['O-2026-003','Overleg vergunningverleners Zuid-Kennemerland','Overlegdossier'],['I-2026-002','Interreg Côte Durable','Subsidiedossier'],['M-2026-009','Programma Cloudmigratie','Programmadossier'],['B-2026-012','Bestuurlijke informatie wethouder Mulder','Bestuursdossier']];
+function zaakOf(nr){return ZAKEN.filter(function(r){return r[0]===nr})[0]}
+function dosOf(nr){return DOSSIERS.filter(function(r){return r[0]===nr})[0]}
+function Mg(w,at,tx,o){o=o||{};o.w=w;o.at=at;o.tx=tx;return o}
+function pidOf(cid,i){return 'nl.haarlem.io:'+hex(4,cid.charCodeAt(0)*131+i*17+3)+'-'+hex(4,cid.length*97+i*7+(cid.charCodeAt(1)||5))+'-'+hex(4,i*331+cid.charCodeAt(0))}
+function C(o){o.doss=o.doss||[];o.hist=o.hist||[];o.zaak=o.zaak||'';o.gid='nl.haarlem.io:g-'+hex(8,o.id.charCodeAt(0)*977+o.id.length*31+(o.id.charCodeAt(1)||7));
+  o.msgs.forEach(function(m,i){m.id=o.id+'-'+i;m.n=i;m.pid=pidOf(o.id,i)});return o}
+var CONV=[
+C({id:'t1',ch:'talk',kind:'ruimte',ti:'Team Vergunningen',sub:'Ruimte · 4 deelnemers',mem:['noor','ruud','fat','me'],age:0,zaak:'Z-2026-004502',msgs:[
+ Mg('noor','08:51','Goedemorgen! De aanvraag voor Kleverlaan 14 is binnen, met nieuwe tekeningen van de architect.',{att:'Tekeningen Kleverlaan 14 rev B.pdf'}),
+ Mg('ruud','08:55','Weer een dakopbouw? Dan moet de welstandscommissie er ook naar kijken.'),
+ Mg('me','09:02','Ik pak hem op. Welstand vergadert donderdag, dan kan hij mee.'),
+ Mg('fat','09:10','Let op: de buren op nummer 12 hebben een bezwaar lopen tegen hun eigen vergunning. Handig om dat mee te nemen.'),
+ Mg('noor','09:12','Oeps, verkeerde ruimte.',{del:true})]}),
+C({id:'t2',ch:'talk',kind:'direct',ti:'Ruud Jansen',sub:'Eén-op-één',mem:['ruud','me'],age:2,msgs:[
+ Mg('ruud','12:31','Ga je vrijdag mee naar de borrel van Ans? Ze stopt eind van de maand.'),
+ Mg('me','12:40','Zeker! Zal ik een cadeau regelen?'),
+ Mg('ruud','12:42','Graag. Ik maak tien euro over.')]}),
+C({id:'t3',ch:'talk',kind:'direct',ti:'Noor Bakker',sub:'Eén-op-één',mem:['noor','me'],age:8,sug:{z:'Z-2026-003981',why:'Het zaaknummer staat in het gesprek.'},msgs:[
+ Mg('noor','15:05','Kun je kijken naar de leges voor de dakkapel aan de Kleverlaan 30? De aanvrager belt steeds.'),
+ Mg('me','15:20','Daar loopt een bezwaar tegen. Ik stuur je het zaaknummer.'),
+ Mg('me','15:21','Z-2026-003981',{lit:true})]}),
+C({id:'e1',ch:'element',kind:'ruimte',ti:'Overleg vergunningverleners Zuid-Kennemerland',sub:'Ruimte · 3 gemeenten · versleuteld',mem:['jer','lisa','me','arc'],age:1,arch:true,archFrom:0,doss:['O-2026-003'],msgs:[
+ Mg('arc','09:00','Archief · Gemeente Haarlem doet mee aan deze ruimte. Nieuwe berichten worden gearchiveerd.',{sys:true}),
+ Mg('jer','10:14','Hoe gaan jullie om met dakopbouwen in beschermd stadsgezicht?'),
+ Mg('me','10:20','Wij vragen altijd advies aan de welstandscommissie, ook bij kleine aanpassingen.'),
+ Mg('lisa','10:31','Wij werken met een beeldkwaliteitsplan per wijk. Ik deel het hier.',{att:'Beeldkwaliteitsplan Heemstede-Noord.pdf'})]}),
+C({id:'e2',ch:'element',kind:'ruimte',ti:'Projectteam Herinrichting Houtplein',sub:'Ruimte · 3 deelnemers · versleuteld',mem:['mark','eva','me'],age:0,arch:false,doss:['P-2026-031'],msgs:[
+ Mg('mark','08:40','De nieuwe planning voor de bestrating staat in de projectmap.'),
+ Mg('eva','08:46','Is dat de planning na het overleg met de ondernemers?'),
+ Mg('mark','08:47','Ja. Fase 2 schuift twee weken op.'),
+ Mg('me','09:05','Dan pas ik de terrasvergunningen aan.')]}),
+C({id:'tc1',ch:'tchap',kind:'extern',ti:'Interreg Côte Durable · groupe de travail',sub:'Gefedereerde ruimte · Tchap en Element · versleuteld',mem:['cam','jul','me','arc'],age:3,arch:true,archFrom:0,doss:['I-2026-002'],lit:true,msgs:[
+ Mg('arc','08:00','Archief · Gemeente Haarlem doet mee aan deze ruimte. Nieuwe berichten worden gearchiveerd.',{sys:true}),
+ Mg('cam','09:32','Bonjour à tous, le compte rendu de la réunion de Lille est en ligne.',{att:'Compte rendu réunion Lille.pdf',lit:true}),
+ Mg('me','09:50','Thanks Camille. Haarlem will share the dune monitoring data before Friday.',{lit:true}),
+ Mg('jul','10:05','Parfait, merci ! On en reparle à la visio de mardi.',{lit:true})]}),
+C({id:'tm1',ch:'teams',kind:'ruimte',ti:'Programma Cloudmigratie · Algemeen',sub:'Teams-kanaal · 3 deelnemers',mem:['kar','tom','me'],age:1,doss:['M-2026-009'],msgs:[
+ Mg('kar','11:02','De planning voor de migratie van de projectschijf staat onder Bestanden.',{att:'Migratieplanning golf 1.xlsx',sp:true}),
+ Mg('tom','11:10','Gaat Team Vergunningen mee in de eerste golf?'),
+ Mg('kar','11:14','Ja, half november. Ik plan een sessie met de sleutelgebruikers.',{ed:'Ja, begin november. Ik plan een sessie met de sleutelgebruikers.'}),
+ Mg('me','11:30','Prima, ik meld me aan als sleutelgebruiker.')]}),
+C({id:'tm2',ch:'teams',kind:'direct',ti:'Tom Peeters',sub:'Chat',mem:['tom','me'],age:1,msgs:[
+ Mg('tom','16:02','Heb je de opname van de sessie van gisteren?'),
+ Mg('me','16:05','Staat in het kanaal, onder Bestanden. De samenvatting ook.')]}),
+C({id:'s1',ch:'slack',kind:'extern',ti:'#gedeeld-bouwlogistiek-houtplein',sub:'Gedeeld kanaal met Bouwbedrijf De Vaart',mem:['piet','mark','me'],age:0,doss:['P-2026-031'],msgs:[
+ Mg('piet','07:12','Morgen vanaf 7.00 uur afzetting aan de zuidkant, voor de kraan.'),
+ Mg('me','07:40','Is de verkeersmaatregel daarvoor aangevraagd?'),
+ Mg('piet','07:44','Ja, het besluit zit in de bijlage.',{att:'Verkeersbesluit tijdelijke afzetting.pdf'}),
+ Mg('mark','08:01','Ik laat de ondernemers vandaag weten dat de zuidkant dicht is.')]}),
+C({id:'w1',ch:'wa',kind:'inwoner',ti:'J. de Graaf',sub:'+31 6 1234 5678 · inwoner',mem:['graaf','me'],age:0,zaak:'Z-2026-003981',msgs:[
+ Mg('graaf','13:02','Goedemiddag, drie weken geleden heb ik een vergunning aangevraagd voor een dakkapel aan de Kleverlaan 30. Hoe staat het ervoor?'),
+ Mg('me','13:15','Goedemiddag mevrouw De Graaf. Uw aanvraag is in behandeling. Er loopt nog een bezwaar over de leges; daarover krijgt u vóór 1 november bericht.'),
+ Mg('graaf','13:18','Dank u. Mijn man is bereikbaar op 06 98765432 als u ons wilt bellen.'),
+ Mg('me','13:20','Genoteerd. U hoort van ons.')]}),
+C({id:'sg1',ch:'signal',kind:'direct',ti:'Bas Mulder',sub:'Wethouder · op je dienstelefoon',mem:['bas','me'],age:0,msgs:[
+ Mg('bas','14:01','Sanne, kun je me vóór het debat van vanavond een korte stand van zaken geven over de terrassen op het Houtplein?'),
+ Mg('me','14:12','Fase 2 van de bestrating schuift twee weken op. Ik pas de terrasvergunningen aan; de ondernemers krijgen deze week bericht.'),
+ Mg('bas','14:14','Helder, dank je. Goed weekend straks!'),
+ Mg('me','14:15','Jij ook!')]}),
+C({id:'sg2',ch:'signal',kind:'direct',ti:'Hardloopclubje Spaarndam',sub:'Groep · 3 deelnemers',mem:['ilse','joost','me'],age:1,msgs:[
+ Mg('ilse','20:31','Zaterdag 8 uur bij de molen?'),
+ Mg('joost','20:40','Ik ben erbij. 10 kilometer?'),
+ Mg('me','20:45','Top, tot zaterdag!')]})
+];
+var BY={};CONV.forEach(function(c){BY[c.id]=c});
+
+/* ---------- toestand ---------- */
+var S={view:'chat',ch:'talk',sel:'t1',pm:'ges',pane:true,skip:0,wire:'—',colo:false,pick:{},anon:null,ah:0};
+
+function age(c){return c.age+S.skip}
+function until(c){return new Date(now().getTime()+(WINDOW-age(c))*DAY)}
+function isDirect(c){return c.kind==='direct'}
+function aardOf(c){return isDirect(c)?(c.aard||null):'zakelijk'}
+function openC(c){return isDirect(c)&&CHB[c.ch].k!=='C'&&!c.aard&&age(c)<WINDOW}
+function auto(c){if(isDirect(c)&&CHB[c.ch].k!=='C'&&!c.aard&&age(c)>=WINDOW){c.aard='zakelijk';c.auto=true;c.hist.push('Na tien dagen automatisch zakelijk')}}
+function mstate(c,m){if(m.sys)return 'sys';var k=CHB[c.ch].k;
+  if(k==='C')return m.cap?'arch':(c.aard==='persoonlijk'?'pers':'none');
+  if(aardOf(c)==='persoonlijk')return 'pers';
+  if(k==='A2')return (m.cap||(c.arch&&m.n>=c.archFrom))?'arch':'none';
+  return 'arch'}
+var STL={arch:['In het archief','p-green'],pers:['Persoonlijk, versleuteld','p-violet'],none:['Niet in het archief','p-amber'],open:['Nog te scheiden','p-blue']};
+function who(w){var p=PP[w]||[w,''];return {n:p[0],o:p[1]}}
+function tx(c,m){var s=(m.lit||c.lit)?m.tx:t(m.tx);return S.anon===c.id||(S.anon==='ok:'+c.id)?anon(s):s}
+function anon(s){return s.replace(/(\+31 ?6|06)[ -]?\d[\d ]{6,11}\d/g,'[[tel]]').replace(/(mevrouw|Mrs\.?|Frau|Madame)? ?(J\. )?[Dd]e Graaf/g,function(x,a){return (a?a+' ':'')+'[[naam]]'}).replace(/Kleverlaan 30/g,'[[adres]]')}
+function anonHtml(s){return esc(s).replace(/\[\[(tel|naam|adres)\]\]/g,function(x,k){return '<mark>['+T({tel:'telefoonnummer',naam:'naam',adres:'adres'}[k])+']</mark>'})}
+function ini(n){return n.split(/[ ·]+/).filter(function(x){return /^[A-ZÀ-Ý]/.test(x)}).slice(0,2).map(function(x){return x[0]}).join('')||n[0]}
+function convs(ch){return CONV.filter(function(c){return c.ch===ch})}
+function lastMsg(c){for(var i=c.msgs.length-1;i>=0;i--)if(!c.msgs[i].sys)return c.msgs[i];return c.msgs[0]}
+function picked(c){return c.msgs.filter(function(m){return S.pick[m.id]})}
+function cnt(){var o={sort:0,arch:0,c:0};CONV.forEach(function(c){if(openC(c))o.sort++;var k=CHB[c.ch].k;
+  if(k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o.arch++;
+  if(k==='C'&&!c.aard&&!c.msgs.some(function(m){return m.cap}))o.c++});return o}
+
+/* ---------- gesprekken ---------- */
+function chatView(){var ch=CHB[S.ch],c=BY[S.sel];
+  var rail='<nav class="crail" aria-label="'+T('Kanalen')+'"><h4>'+T('Kanalen')+'</h4>'+CH.map(function(x){var n=convs(x.id).filter(openC).length;
+      return '<button type="button" data-act="ch" data-v="'+x.id+'" aria-current="'+(S.ch===x.id)+'"><span class="cd" style="background:'+x.col+'"></span><span>'+esc(x.n)+'</span><small title="'+T(KL[x.k])+'" style="color:'+KCV[x.k]+'">'+KS[x.k]+'</small>'+'</button>'}).join('')
+    +'<p class="gr">'+T('De letter is de klasse: hoe het kanaal in het archief komt. Zie Kanalen.')+'</p></nav>';
+  var list='<div class="clist" style="--chc:'+ch.col+'">'+convs(ch.id).map(function(x){var l=lastMsg(x),st=pillsOf(x);
+      return '<button type="button" class="ci" data-act="sel" data-id="'+x.id+'" aria-current="'+(S.sel===x.id)+'"><div class="r1"><b>'+esc(x.lit?x.ti:t(x.ti))+'</b><time>'+esc(age(x)===0?l.at:fmtD(new Date(now().getTime()-age(x)*DAY)))+'</time></div>'
+        +'<div class="pv">'+esc(l.sys?t(l.tx):(l.w==='me'?t('Jij'):who(l.w).n.split(' ')[0])+': '+(l.del&&aardOf(x)==='zakelijk'?t('Dit bericht is verwijderd.'):tx(x,l).replace(/\[\[(\w+)\]\]/g,'…')))+'</div><div class="st">'+st+'</div></button>'}).join('')+'</div>';
+  return '<div class="win"><div class="cc'+(S.pane?'':' nopane')+'">'+rail+list+convHtml(c)+(S.pane?paneHtml(c):'')+'</div></div>';
+}
+function pillsOf(c){var o='',a=aardOf(c),k=CHB[c.ch].k;
+  if(openC(c))o+='<span class="pill p-blue">'+ic('clock',11)+T('nog {0} dagen',WINDOW-age(c))+'</span>';
+  else if(a==='persoonlijk'||(k==='C'&&c.aard==='persoonlijk'))o+='<span class="pill p-violet">'+ic('lock',11)+T('Persoonlijk')+'</span>';
+  else if(k==='C'){var n=c.msgs.filter(function(m){return m.cap}).length;o+=n?'<span class="pill p-green">'+T('{0} vastgelegd',n)+'</span>':'<span class="pill p-amber">'+T('Niet vastgelegd')+'</span>'}
+  else{o+='<span class="pill p-green">'+T('Zakelijk')+'</span>';if(k==='A2'&&c.msgs.some(function(m){return mstate(c,m)==='none'}))o+='<span class="pill p-amber">'+ic('warn',11)+T('Deels niet in het archief')+'</span>'}
+  if(c.zaak)o+='<span class="pill p-grey">'+esc(c.zaak)+'</span>';return o}
+function convHtml(c){var ch=CHB[c.ch],k=ch.k,d=new Date(now().getTime()-age(c)*DAY),pv=S.anon===c.id;
+  var h='<section class="conv" style="--chc:'+ch.col+'" aria-label="'+T('Gesprek')+'"><div class="cvh">'+ic('chat',18)+'<div><b>'+esc(c.lit?c.ti:t(c.ti))+'</b><br><small>'+esc(ch.n)+' · '+esc(c.lit?t(c.sub):t(c.sub))+'</small></div>'
+    +'<div class="pn"><span class="pill '+KP[k]+'">'+T(KL[k])+'</span><button type="button" class="tb" data-act="pane" aria-pressed="'+S.pane+'" title="'+T('Paneel van de Office Assistent')+'">'+ic('pane',14)+T('Assistent')+'</button></div></div>';
+  if(pv)h+='<div class="cvb"><span class="pill p-amber">'+ic('eye',11)+T('Voorbeeld')+'</span><span>'+T('Zo ziet het gesprek eruit na anonimiseren, voor de Woo.')+'</span></div>';
+  h+='<div class="msgs"><div class="dsep">'+esc(fmtD(d))+'</div>'+c.msgs.map(function(m){return msgHtml(c,m)}).join('')+'</div>';
+  var ph=k==='C'?t('Op je telefoon typ je in Signal. Hier zie je het gesprek zoals het op je toestel staat.'):k==='A2'&&!c.arch?t('Deze ruimte heeft geen archiefdeelnemer. Wat je hier typt, komt niet in het archief.'):'';
+  h+='<div class="cmpw"><div class="cmp"><input id="cmp" autocomplete="off" placeholder="'+T('Typ een bericht')+'" aria-label="'+T('Bericht')+'"><button type="button" class="btn pri sm" data-act="send">'+ic('send',13)+T('Verzenden')+'</button></div>'+(ph?'<p class="hint">'+esc(ph)+'</p>':'')+'</div></section>';
+  return h}
+function msgHtml(c,m){if(m.sys)return '<div class="sysm">'+ic('bot',13)+'<span>'+T(m.tx)+'</span></div>';
+  var p=who(m.w),st=mstate(c,m),me=m.w==='me',s=tx(c,m);if(openC(c)&&st==='arch')st='open';
+  var h='<div class="mr'+(me?' me':'')+(S.pick[m.id]?' pk':'')+'"><input type="checkbox" data-pick="'+m.id+'"'+(S.pick[m.id]?' checked':'')+' aria-label="'+T('Selecteer bericht van {0}',p.n)+'">'
+    +'<div class="av" aria-hidden="true">'+esc(S.anon===c.id&&m.w==='graaf'?'?':ini(p.n))+'</div><div><div class="mb1"><b>'+esc(S.anon===c.id&&m.w==='graaf'?'['+t('naam')+']':p.n)+'</b>'+(p.o?'<span class="org">'+T(p.o)+'</span>':'')+'<time>'+esc(m.at)+'</time></div>';
+  if(m.del&&aardOf(c)==='zakelijk')h+='<div class="mtx del">'+T('Dit bericht is verwijderd.')+'</div>';
+  else h+='<div class="mtx">'+anonHtml(s)+(m.ed?' <span class="hint">('+T('bewerkt')+')</span>':'')+'</div>';
+  if(m.att)h+='<div class="mat">'+ic('clip',14)+'<div>'+esc(m.att)+'<small>'+T(m.sp?'In SharePoint. Het register verwijst naar het bestand als eigen informatieobject.':'Eigen informatieobject, gekoppeld aan het bericht')+'</small></div></div>';
+  h+='<div class="mst"><span class="pill '+STL[st][1]+'">'+T(STL[st][0])+'</span>';
+  if(m.cap)h+='<span class="pill p-grey">'+T(m.via==='client'?'Vastgelegd vanaf jouw client':'Vastgelegd door jou')+'</span>';
+  if(m.del&&st==='arch')h+='<span class="pill p-grey">'+T('Verwijderd in de chat, bewaard in het archief')+'</span>';
+  if(m.ed&&st==='arch')h+='<span class="pill p-grey" title="'+esc(t(m.ed))+'">'+T('Beide versies in het archief')+'</span>';
+  return h+'</div></div></div>'}
+
+/* ---------- paneel ---------- */
+function paneHtml(c){var n=cnt(),tabs=[['ov','list','Overzicht',n.sort+n.arch+n.c],['ges','chat','Dit gesprek',0],['help','help','Help',0]];
+  var body=S.pm==='ov'?ovHtml(n):S.pm==='help'?helpHtml(c):gesHtml(c);
+  return '<aside class="ap" aria-label="'+T('Office Assistent')+'"><div class="apm"><div class="aph">'+ic('bot',18)+'<div><h3>'+T('Assistent')+'</h3><p>'+T('Office Assistent · module Chatarchivering')+'</p></div></div><div class="apb">'+body+'</div></div>'
+    +'<div class="apr" role="tablist" aria-orientation="vertical">'+tabs.map(function(x){return '<button type="button" role="tab" data-act="pm" data-v="'+x[0]+'" aria-selected="'+(S.pm===x[0])+'" title="'+T(x[2])+'" aria-label="'+T(x[2])+'">'+ic(x[1],18)+(x[3]?'<i>'+x[3]+'</i>':'')+'</button>'}).join('')+'</div></aside>'}
+function ovHtml(n){var row=function(c,why){return '<li><button type="button" data-act="go" data-id="'+c.id+'"><span class="gn"><span>'+esc(c.lit?c.ti:t(c.ti))+'</span><small>'+esc(CHB[c.ch].n)+' · '+esc(why)+'</small></span></button></li>'};
+  var a=CONV.filter(openC),b=CONV.filter(function(c){return CHB[c.ch].k==='A2'&&!isDirect(c)&&c.msgs.some(function(m){return mstate(c,m)==='none'})}),d=CONV.filter(function(c){return CHB[c.ch].k==='C'&&!c.aard&&!c.msgs.some(function(m){return m.cap})});
+  var h='<h3>'+T('Overzicht')+'</h3><p class="hint">'+T('Wat nog aandacht vraagt, over alle kanalen heen.')+'</p>';
+  h+='<h4>'+T('Nog te scheiden')+' <b>'+a.length+'</b></h4>'+(a.length?'<ul class="apl">'+a.map(function(c){return row(c,t('nog {0} dagen',WINDOW-age(c)))}).join('')+'</ul>':'<p class="hint">'+T('Niets meer te scheiden.')+'</p>');
+  h+='<h4>'+T('Zakelijke ruimtes met berichten buiten het archief')+' <b>'+b.length+'</b></h4>'+(b.length?'<ul class="apl">'+b.map(function(c){return row(c,t(c.arch?'eerdere berichten niet vastgelegd':'geen archiefdeelnemer'))}).join('')+'</ul>':'<p class="hint">'+T('Alle zakelijke ruimtes worden gearchiveerd.')+'</p>');
+  h+='<h4>'+T('Op je telefoon, nog niet beoordeeld')+' <b>'+d.length+'</b></h4>'+(d.length?'<ul class="apl">'+d.map(function(c){return row(c,t('leg vast wat zakelijk is'))}).join('')+'</ul>':'<p class="hint">'+T('Alles beoordeeld.')+'</p>');
+  return h}
+function helpHtml(c){var ch=CHB[c.ch];
+  return '<h3>'+T('Help')+'</h3><div class="box"><div class="bh">'+ic('info',15)+'<b>'+T('Waar de assistent staat in {0}',ch.n)+'</b></div><p>'+T(ch.where)+'</p></div>'
+   +'<div class="box"><b>'+T('Zo werkt het')+'</b><ul class="hist">'+['Een ruimte of kanaal over werk is zakelijk. Alles wat erin staat, hoort bij het archief.','Een één-op-één-gesprek scheid je zelf: zakelijk of persoonlijk, binnen tien dagen. Daarna geldt het als zakelijk.','Persoonlijk betekent: versleuteld met je eigen sleutel en buiten het zoekbereik voor de Woo.','Verwijderen in een zakelijk gesprek haalt het bericht uit de chat, niet uit het archief.','Een bijlage is een eigen informatieobject. Het bericht verwijst ernaar, er is geen kopie.','Wat via Signal of een andere app op je telefoon gaat, leg je zelf vast. Beter: gebruik voor werk de chat van de gemeente.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div>'}
+function gesHtml(c){var ch=CHB[c.ch],k=ch.k,a=aardOf(c),sel=picked(c),h='';
+  h+='<div class="bh"><h3>'+esc(c.lit?c.ti:t(c.ti))+'</h3></div><div class="box"><div class="bh"><span class="pill '+KP[k]+'">'+T(KL[k])+'</span><b class="hint">'+esc(ch.n)+'</b></div><dl class="kdl"><dt>'+T('Origineel')+'</dt><dd>'+T(ch.orig)+'</dd><dt>'+T('Archief')+'</dt><dd>'+T(ch.cap)+'</dd><dt>'+T('Volledigheid')+'</dt><dd>'+T(ch.vol)+'</dd><dt>'+T('Bewijskracht')+'</dt><dd>'+T(ch.kb)+'</dd></dl></div>';
+  /* aard */
+  h+='<div class="box"><b>'+T('Zakelijk of persoonlijk')+'</b>';
+  if(c.kind==='inwoner')h+='<p>'+T('Contact met een inwoner is altijd zakelijk.')+'</p>';
+  else if(!isDirect(c))h+='<p>'+T(c.kind==='extern'?'Ruimte met externe partners over werk: alles is zakelijk.':'Ruimte over werk: alles wat hier staat, is zakelijk.')+'</p>';
+  else if(k==='C'){h+=c.aard==='persoonlijk'?'<p>'+T('Je hebt dit gesprek als persoonlijk gemarkeerd. Er wordt niets vastgelegd.')+'</p><button type="button" class="btn sm" data-act="aard" data-v="">'+T('Toch beoordelen')+'</button>'
+      :'<p>'+T('Signal heeft geen archiefkoppeling. Selecteer de zakelijke berichten en leg ze vast. Is het gesprek helemaal persoonlijk, markeer het dan zo.')+'</p><button type="button" class="btn sm" data-act="aard" data-v="persoonlijk">'+ic('lock',13)+T('Helemaal persoonlijk')+'</button>'}
+  else if(!c.aard){h+='<p>'+T('Nog {0} dagen om te kiezen, tot {1}. Daarna geldt het gesprek als zakelijk.',WINDOW-age(c),fmtD(until(c)))+'</p><div class="rowb2"><button type="button" class="btn sm pri" data-act="aard" data-v="zakelijk">'+T('Zakelijk')+'</button><button type="button" class="btn sm" data-act="aard" data-v="persoonlijk">'+ic('lock',13)+T('Persoonlijk')+'</button></div>'}
+  else h+='<p>'+T(c.aard==='zakelijk'?(c.auto?'Zakelijk: na tien dagen automatisch.':'Zakelijk. Het gesprek hoort bij het archief.'):'Persoonlijk: versleuteld met je eigen sleutel, buiten het zoekbereik voor de Woo.')+'</p>'+(age(c)<WINDOW?'<button type="button" class="btn sm" data-act="aard" data-v="'+(c.aard==='zakelijk'?'persoonlijk':'zakelijk')+'">'+T('Herzien, kan tot {0}',fmtD(until(c)))+'</button>':'');
+  h+='</div>';
+  /* archiefdeelnemer */
+  if(k==='A2'){var miss=c.msgs.filter(function(m){return mstate(c,m)==='none'}).length;
+    h+='<div class="box"><div class="bh">'+ic('bot',15)+'<b>'+T('Archiefdeelnemer')+'</b></div>';
+    if(c.arch)h+='<p>'+T('Archief · Gemeente Haarlem is lid van deze ruimte. Iedereen ziet dat; het ontvangt nieuwe berichten als deelnemer en ontsleutelt ze met sleutels uit de sleutelkluis van de gemeente.')+'</p>';
+    else h+='<div class="note n-amber">'+ic('warn')+'<span>'+T('Deze ruimte gaat over werk, maar heeft geen archiefdeelnemer. De Matrix-server kan de berichten niet lezen, dus ze komen niet in het archief.')+'</span></div><button type="button" class="btn sm pri" data-act="invite">'+ic('bot',13)+T('Archiefdeelnemer uitnodigen')+'</button>';
+    if(c.arch&&miss)h+='<div class="note n-amber">'+ic('warn')+'<span>'+T('{0} eerdere berichten kan de archiefdeelnemer niet lezen: de sleutels zijn van vóór zijn komst. Jouw client heeft ze wel en kan ze vastleggen.',miss)+'</span></div><button type="button" class="btn sm" data-act="capprev">'+T('Eerdere berichten vastleggen vanaf jouw client')+'</button>';
+    h+='</div>'}
+  /* selectie */
+  h+='<div class="box"><div class="bh"><b>'+T('Selectie')+'</b>'+(sel.length?'<button type="button" class="linkbtn" data-act="clr">'+T('Wissen')+'</button>':'')+'</div>';
+  if(!sel.length)h+='<p class="hint">'+T(k==='C'?'Vink de zakelijke berichten aan en leg ze vast als één informatieobject.':'Vink berichten aan om ze in een dossier op te nemen, of om ze vast te leggen als ze nog niet in het archief staan.')+'</p>';
+  else{var unc=sel.filter(function(m){var s=mstate(c,m);return s==='none'});
+    h+='<p>'+T('{0} berichten geselecteerd',sel.length)+(unc.length?', '+T('waarvan {0} niet in het archief',unc.length):'')+'.</p>';
+    if(unc.length)h+='<button type="button" class="btn sm pri" data-act="capsel">'+ic(k==='C'?'share':'check',13)+T(k==='C'?'Delen naar MAIA: vastleggen':'Vastleggen als informatieobject')+'</button>'+(k==='C'?'<p class="hint">'+T('Je verklaart daarmee dat dit de zakelijke berichten uit het gesprek zijn. Dat komt in het register.')+'</p>':'');
+    h+='<div class="fld"><label for="f-pd">'+T('Opnemen in dossier')+'</label><select id="f-pd" data-f="pd"><option value="">'+T('Kies een dossier')+'</option>'+DOSSIERS.map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select><p class="hint">'+T('Het dossier verwijst naar de berichten; er wordt niets gekopieerd.')+'</p></div>'}
+  h+='</div>';
+  /* koppelen */
+  if(a!=='persoonlijk'&&c.aard!=='persoonlijk'){
+    h+='<div class="box"><b>'+T('Zaak en dossiers')+'</b>';
+    if(c.zaak){var z=zaakOf(c.zaak);h+='<div class="lnk">'+ic('case',14)+'<span>'+esc(c.zaak)+'<small>'+T(z?z[1]:'')+'</small></span><button type="button" data-act="unl" data-k="zaak" data-v="'+c.zaak+'" aria-label="'+T('Ontkoppelen')+'">×</button></div>'}
+    else{if(c.sug&&c.sug.z)h+='<p class="hint">'+T('Voorstel: zaak {0}. {1}',c.sug.z,t(c.sug.why))+' <button type="button" class="linkbtn" data-act="sugz">'+T('Koppelen')+'</button></p>';
+      h+='<div class="fld"><label for="f-z">'+T('Koppelen aan een zaak')+'</label><select id="f-z" data-f="zaak"><option value="">'+T('Kies een zaak')+'</option>'+ZAKEN.map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select></div>'}
+    c.doss.forEach(function(d){var r=dosOf(d);h+='<div class="lnk">'+ic('folder',14)+'<span>'+esc(d)+'<small>'+T(r[1])+' · '+T(r[2])+'</small></span><button type="button" data-act="unl" data-k="dos" data-v="'+d+'" aria-label="'+T('Ontkoppelen')+'">×</button></div>'});
+    h+='<div class="fld"><label for="f-d">'+T('Gesprek opnemen in een dossier')+'</label><select id="f-d" data-f="dos"><option value="">'+T('Kies een dossier')+'</option>'+DOSSIERS.filter(function(r){return c.doss.indexOf(r[0])<0}).map(function(r){return '<option value="'+r[0]+'">'+esc(r[0]+' · '+t(r[1]))+'</option>'}).join('')+'</select></div>';
+    h+='<p class="hint">'+T('De zaak komt uit het zaaksysteem, dat leidend blijft. MAIA legt de koppeling vast als kenmerk in het register.')+'</p></div>';
+    /* verslag */
+    var na=c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length;
+    h+='<div class="box"><div class="bh">'+ic('doc',15)+'<b>'+T('Gespreksverslag')+'</b></div>'+(c.vsl?'<p>'+T('Gemaakt op {0}: PDF/A-2, gewaarmerkt namens de gemeente. Het verslag verwijst naar {1} berichten in het archief.',fmtD(c.vsl),c.vsl_n)+'</p>':'<p class="hint">'+T('Een leesbare weergave van het gesprek, als eigen informatieobject met een relatie naar elk bericht. Geen kopie.')+'</p>')
+      +'<button type="button" class="btn sm" data-act="vsl"'+(na?'':' disabled')+'>'+ic('seal',13)+T(c.vsl?'Opnieuw maken':'Gespreksverslag maken')+'</button>'+(na?'':'<p class="hint">'+T('Er staan nog geen berichten van dit gesprek in het archief.')+'</p>')+'</div>';
+    /* anonimiseren */
+    if(c.kind==='inwoner')h+='<div class="box"><div class="bh">'+ic('eye',15)+'<b>'+T('Anonimiseren voor de Woo')+'</b></div><p class="hint">'+T('Naam, telefoonnummer en adres van de inwoner worden onleesbaar gemaakt. Het is een voorbeeld tot je het bevestigt.')+'</p>'
+      +(c.anonOk?'<p>'+T('Bevestigd. De geanonimiseerde versie is een eigen weergave; het origineel blijft ongewijzigd in het archief.')+'</p>':'')
+      +'<div class="rowb2"><button type="button" class="btn sm" data-act="anon" aria-pressed="'+(S.anon===c.id)+'">'+ic('eye',13)+T(S.anon===c.id?'Voorbeeld sluiten':'Voorbeeld tonen')+'</button>'+(S.anon===c.id&&!c.anonOk?'<button type="button" class="btn sm pri" data-act="anonok">'+T('Bevestigen')+'</button>':'')+'</div></div>';
+  }
+  if(c.hist.length)h+='<div class="box"><b>'+T('Geschiedenis')+'</b><ul class="hist">'+c.hist.map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div>';
+  h+='<p class="hint mono">'+esc(c.gid)+'</p>';
+  return h}
+
+/* ---------- kanalen ---------- */
+function kanView(){var KT={A:['Eigen beheer','De chat draait in de Nextcloud-stack van de gemeente. Het bericht is aan de bron een informatieobject; een kopie is niet nodig.'],
+  A2:['Eigen beheer, versleuteld','De chat draait op een Matrix-server van de gemeente of van een andere overheid. De server kan de berichten niet lezen. Een zichtbare archiefdeelnemer, met sleutels van de gemeente, legt ze vast.'],
+  B:['Leverancier','De chat draait bij een leverancier. Via een koppeling krijgt XENA een archiefwaardige kopie; het origineel blijft buiten de gemeente.'],
+  C:['Toestel','De berichten staan alleen op de telefoons van de deelnemers. Er is geen koppeling; de medewerker legt zelf vast wat zakelijk is.']};
+  return '<div class="win"><div class="page"><h2>'+T('Vier klassen, één archief')+'</h2><p class="lead">'+T('Elk chatkanaal komt op een andere manier in XENA. Het verschil zit in waar het origineel staat, wie het kan lezen en hoe volledig het archief is. Het archief zelf is voor alle kanalen hetzelfde: register, objectopslag en zoekindex.')+'</p>'
+   +'<div class="kcards">'+['A','A2','B','C'].map(function(k){return '<section class="kcard" style="--kc:'+KCV[k]+'"><h3><span class="pill '+KP[k]+'">'+KS[k]+'</span>'+T(KT[k][0])+'</h3><p>'+T(KT[k][1])+'</p><ul>'+CH.filter(function(c){return c.k===k}).map(function(c){return '<li class="chd2"><i style="background:'+c.col+'"></i>'+esc(c.n)+'</li>'}).join(' ')+'</ul></section>'}).join('')+'</div>'
+   +'<section class="tgrp"><header><b>'+T('Per kanaal')+'</b><span>'+T('Wat de medewerker ook gebruikt, de assistent laat per gesprek zien welke klasse geldt.')+'</span></header><div class="tw0"><table class="tt"><thead><tr><th>'+T('Kanaal')+'</th><th>'+T('Klasse')+'</th><th>'+T('Origineel')+'</th><th>'+T('Hoe XENA het krijgt')+'</th><th>'+T('Volledigheid')+'</th><th>'+T('Bewijskracht')+'</th></tr></thead><tbody>'
+   +CH.map(function(c){return '<tr><td><span class="chd2"><i style="background:'+c.col+'"></i><b>'+esc(c.n)+'</b></span></td><td><span class="pill '+KP[c.k]+'">'+KS[c.k]+'</span></td><td>'+T(c.orig)+'</td><td>'+T(c.cap)+'</td><td>'+T(c.vol)+'</td><td>'+T(c.kb)+'</td></tr>'}).join('')+'</tbody></table></div></section>'
+   +'<div class="gtwo"><section class="tgrp"><header><b>'+T('Breek nooit de versleuteling om te kunnen archiveren')+'</b></header><div><ul>'
+   +['In 2025 werd een aangepaste versie van Signal gehackt die Amerikaanse overheden gebruikten om berichten te archiveren. De app stuurde de berichten onversleuteld naar een archiefserver van de leverancier.','MAIA kiest daarom voor een archiefdeelnemer in eigen beheer, die iedereen in de ruimte ziet, of voor vastleggen door de medewerker zelf. Nooit voor een aangepaste app die stil meeleest.','Sleutels van de archiefdeelnemer staan in de sleutelkluis van de gemeente, niet bij een leverancier en niet op de werkplek.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div></section>'
+   +'<section class="tgrp"><header><b>'+T('Grensgevallen')+'</b></header><div><ul>'
+   +['WhatsApp Business-app op een dienstelefoon: koppelen kan, maar de meldingen zijn dan naar beste vermogen, geen volledig archief. MAIA rekent die variant tot klasse C. Gebruik voor inwonercontact de Cloud API.','Teams bewaart chatberichten ook als compliance-records in de postbussen van de deelnemers. Het origineel blijft bij Microsoft, tenzij een kort bewaarbeleid het daar opruimt.','In een gefedereerde Matrix-ruimte archiveert elke organisatie aan haar eigen kant. Wat de gemeente bewaart, hangt niet af van de andere servers.','Een gedeeld Slack-kanaal met een ketenpartner archiveert de gemeente alleen in haar eigen werkruimte.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div></section></div></div></div>'}
+
+/* ---------- architectuur ---------- */
+var SEQ=[
+ {t:'Bericht in een zakelijke Talk-ruimte',s:['De medewerker plaatst een bericht in Talk.','Talk slaat het op in Nextcloud. Nextcloud maakt eerst een vermelding in het register.','Het register kent een duurzame identificatie toe en hangt het bericht aan het gesprek, dat als map in het register staat.','Nextcloud schrijft het bericht via S3 in de objectopslag, met Object Lock.','De zoekindex neemt het op, binnen het zoekbereik voor de Woo.']},
+ {t:'Bericht in een versleutelde Matrix-ruimte',s:['Een deelnemer verstuurt een versleuteld bericht.','De Matrix-server bewaart en verspreidt het, zonder het te kunnen lezen.','De archiefdeelnemer ontvangt het als lid van de ruimte en ontsleutelt het in de archiefdienst, met sleutels uit de sleutelkluis.','De archiefdienst schrijft het bericht via WebDAV in Nextcloud, met het oorspronkelijke Matrix-event erbij.','Register, objectopslag en zoekindex zoals bij elk ander object.']},
+ {t:'Bericht in een chatdienst van een leverancier',s:['De medewerker plaatst een bericht, bijvoorbeeld in Teams.','De leverancier stuurt een melding naar het meldpunt van de gemeente.','Een kleine brug haalt het bericht op en schrijft het als kopie in Nextcloud.','Het register legt de bron vast, met de identificatie bij de leverancier. Een bewerking wordt een nieuwe versie.','Bijlagen staan in de samenwerkomgeving; het register verwijst naar het bestand als eigen informatieobject.']},
+ {t:'Bericht van een inwoner',s:['De inwoner stuurt een bericht naar het nummer van de gemeente.','De berichtendienst stuurt een webhook naar het meldpunt; de brug schrijft het in Nextcloud.','De klantcontactomgeving toont het bericht; de medewerker antwoordt daar.','Het antwoord gaat via de API de deur uit en komt via dezelfde brug in het archief.','Voor de Woo wordt een geanonimiseerde weergave gemaakt; het origineel blijft ongewijzigd.']},
+ {t:'Selectie vanaf het toestel',s:['De medewerker selecteert berichten op de telefoon en kiest Delen, dan MAIA.','De MAIA-app vraagt om het gesprek, de deelnemers en een korte verklaring.','De selectie gaat via de integratielaag naar Nextcloud, als één informatieobject met de berichten erin.','Het register legt vast wie de selectie heeft gemaakt en verklaard.','De rest van het gesprek blijft op het toestel en komt niet in het archief.']},
+ {t:'Gespreksverslag maken',s:['De medewerker of de informatiebeheerder kiest Gespreksverslag maken.','MAIA haalt de berichten uit het register, in volgorde, met bewerkingen en verwijderingen.','Er ontstaat een PDF/A-2 als weergave, gewaarmerkt namens de gemeente.','Het verslag is een eigen informatieobject met een relatie naar elk bericht, geen kopie.']}];
+function archView(){var a=S.ah,q=SEQ[a];
+  var bx=function(b,s){return '<div class="bx"><b>'+T(b)+'</b>'+(s?'<small>'+T(s)+'</small>':'')+'</div>'};
+  var layer=function(cls,h,note,boxes){return '<div class="layer '+cls+'"><h3>'+T(h)+'</h3><div class="boxes">'+boxes+'</div>'+(note?'<p class="hint">'+T(note)+'</p>':'')+'</div>'};
+  var btn=function(i,lab){return '<button type="button" data-act="ah" data-i="'+i+'"'+(a===i?' style="background:var(--accent);color:var(--accent-fg)"':'')+'>'+T(lab)+'</button>'};
+  var conn=function(i,lab){return '<div class="conn"><button type="button" data-act="ah" data-i="'+i+'"'+(a===i?' style="background:var(--accent);color:var(--accent-fg)"':'')+'>'+T(lab)+'</button></div>'};
+  var left='<div><h2>'+T('Van chatbericht tot archief')+'</h2><p class="lead">'+T('Vier soorten chatomgevingen, één archief. Per klasse een andere aanvoer; daarna loopt elk bericht langs dezelfde weg als een bestand op een netwerkschijf.')+'</p>'
+    +layer('l1','Werkplek','Productnamen zijn voorbeelden; de architectuur hangt er niet van af.',
+      bx('Chatomgeving in eigen beheer','Bijvoorbeeld Nextcloud Talk')+bx('Versleutelde chatomgeving','Een Matrix-client, zoals Element in MijnBureau of Tchap in LaSuite')+bx('Chatdienst van een leverancier','Bijvoorbeeld Teams of Slack, en een berichtendienst voor inwonercontact')+bx('Berichtenapp op het toestel','Bijvoorbeeld Signal')+bx('Office Assistent','Paneel in elke chatomgeving waar dat kan; het deelmenu op de telefoon'))
+    +'<div class="conn lab"><span>'+T('Aanroepen van de Office Assistent')+'</span></div>'
+    +layer('l2b','Integratielaag, aan de serverkant','Dezelfde laag als voor de kantoorpakketten en de mail. Op de werkplek staan geen sleutels.',
+      bx('Aanmelding','Stelt vast wie de medewerker is')+bx('Geheimen','Tokens en sleutels blijven hier')+bx('Doorgeven','Naar de API van MAIA en het register'))
+    +'<div class="conn multi">'+btn(0,'Talk')+btn(1,'Matrix')+btn(2,'Leverancier')+btn(3,'Inwoner')+btn(4,'Toestel')+'</div>'
+    +layer('l2','Aanvoer per klasse','Alleen deze laag verschilt per kanaal. Vervangt de gemeente een chatomgeving, dan verandert alleen de aanvoer.',
+      bx('A · aan de bron','De chat schrijft rechtstreeks in Nextcloud')+bx('A′ · archiefdeelnemer','Een Matrix-gebruiker van de gemeente in elke zakelijke ruimte; sleutels in de sleutelkluis')+bx('B · koppelingen','Meldingen en webhooks van de leverancier; een kleine brug schrijft in Nextcloud')+bx('C · deelmenu','Een selectie van de medewerker, via de integratielaag'))
+    +conn(5,'Gespreksverslag')
+    +layer('key','XENA, Nextcloud-stack','Eén keer opgeslagen, vanuit elk kanaal te vinden.',
+      bx('Nextcloud','WebDAV-ingang; schrijft eerst in het register')+bx('Register','Gesprek als map, bericht als informatieobject, koppelingen met zaak en dossier')+bx('Objectopslag','S3 met Object Lock: elk bericht één keer')+bx('Zoekindex','Woo-zoeken over alle kanalen heen')+bx('Sleutelkluis','Persoonlijke sleutels en die van de archiefdeelnemer'))+'</div>';
+  var right='<div><h2>'+T(q.t)+'</h2><p class="lead">'+T('Kies een verbinding links om de stappen te zien.')+'</p><ol class="sq">'+q.s.map(function(s,i){return '<li><span class="n">'+(i+1)+'</span><div><p>'+T(s)+'</p></div></li>'}).join('')+'</ol>'
+    +'<div class="open">'+[['Federatie','In een gefedereerde ruimte archiveert de gemeente aan haar eigen kant. Afspraken met de partners zijn nodig over wat zij van de archiefdeelnemer zien.'],['Granulariteit','Het bericht is het informatieobject. Een gesprek per dag of per onderwerp is een weergave, geen object.'],['Bewaartermijnen','Een gesprek kan bij meer dan één zaak of dossier horen. De langste termijn gaat voor, zoals bij documenten.']].map(function(x){return '<div><b>'+T(x[0])+'</b><span>'+T(x[1])+'</span></div>'}).join('')+'</div></div>';
+  return '<div class="win"><div class="page"><div class="xarch">'+left+right+'</div></div></div>'}
+
+/* ---------- techniek ---------- */
+function techView(){var rows=[
+  ['Nextcloud Talk','Rechtstreeks in Nextcloud','Ja','Talk houdt bewerkingen bij; het register maakt er versies van','Staan al in Nextcloud Files','Een registerkoppeling voor chatberichten, naast die voor bestanden'],
+  ['Element, Tchap (Matrix)','Archiefdeelnemer: een Matrix-gebruiker van de gemeente','Ja','Bewerkingen en verwijderingen zijn eigen events; het archief bewaart ze allebei','Versleutelde media, met de sleutel in het event','Archiefdienst met sleutelbeheer, uitnodigen per zakelijke ruimte, afspraken over federatie'],
+  ['Microsoft Teams','Microsoft Graph: meldingen bij wijzigingen, de export-API voor het verleden','Ja, via meldingen','Bewerkingen als nieuwe versie; verwijderde berichten zijn maar korte tijd op te halen','In SharePoint of OneDrive','Meldpunt en brug, goedkeuring van Microsoft voor de beschermde API, licenties'],
+  ['Slack','Events API van de eigen werkruimte','Ja','Wijzigen en verwijderen komen als events binnen','Via de Web API','Slack-app met de juiste rechten, brug'],
+  ['WhatsApp Business','Cloud API: webhooks voor binnenkomend, de API voor verzenden','Ja','Statusmeldingen; berichten zelf worden niet bewerkt','Media ophalen kort na ontvangst','Klantcontactomgeving op de Cloud API, brug, anonimiseren'],
+  ['Signal','Geen; alleen het deelmenu van het toestel','Nee','Niet te volgen','Via het deelmenu','MAIA-app voor de telefoon, verklaring, afspraken']];
+  var om=[['Bericht','Informatieobject van het type chatbericht. Eigen identificatie, het oorspronkelijke formaat (Matrix-event, Graph- of Slack-JSON) en een gelijkgetrokken vorm in ActivityStreams 2.0.'],['Gesprek','Subtype van map: een ruimte, kanaal of één-op-één-gesprek. Bestaat als metagegeven in het register.'],['Deelnemer','Persoon of organisatie met rol en periode van deelname; ook de archiefdeelnemer.'],['Bijlage','Gekoppeld object met eigen identificatie, geen ingesloten kopie.'],['Bewerking','Nieuwe versie van hetzelfde bericht.'],['Verwijderen in de chat','Bij een zakelijk gesprek uit het zicht, niet uit het archief. Het register legt vast wie het wanneer deed.'],['Gespreksverslag','PDF/A-2 als weergave, gewaarmerkt, met een relatie naar elk bericht.']];
+  var opt=[['Gebruiker in de ruimte',true,['Zichtbaar voor iedereen in de ruimte','Werkt ook in gefedereerde ruimtes','Elke Matrix-server, zonder aanpassing'],['Leest alleen berichten van na zijn komst']],
+    ['Application service op de eigen server',false,['Centraal beheer, zonder extra client'],['Ziet in versleutelde ruimtes ook alleen wat het als deelnemer ontvangt','Alleen voor de eigen server']],
+    ['Doorsturen door de client',false,['Ook voor berichten van vóór de archiefdeelnemer'],['Afhankelijk van elke client','Lastig te controleren; alleen als aanvulling']]];
+  return '<div class="win"><div class="page"><h2>'+T('Wat elk kanaal levert')+'</h2><p class="lead">'+T('Elke aanvoer eindigt op dezelfde plek: een WebDAV-schrijfactie in Nextcloud, die eerst het register bijwerkt. Geen aparte orkestratie, zoals bij ELSA.')+'</p>'
+   +'<section class="tgrp"><div class="tw0"><table class="tt"><thead><tr><th>'+T('Kanaal')+'</th><th>'+T('Koppeling')+'</th><th>'+T('Direct')+'</th><th>'+T('Bewerken en verwijderen')+'</th><th>'+T('Bijlagen')+'</th><th>'+T('Te bouwen')+'</th></tr></thead><tbody>'
+   +rows.map(function(r){return '<tr><td><b>'+esc(r[0])+'</b></td>'+r.slice(1).map(function(x){return '<td>'+T(x)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></section>'
+   +'<section class="tgrp"><header><b>'+T('Objectmodel')+'</b><span>'+T('Hetzelfde voor alle kanalen. Zo werkt zoeken voor de Woo over Talk, Matrix, Teams en Signal heen.')+'</span></header><div class="trow hd"><span>'+T('Object')+'</span><span>'+T('Wat het is')+'</span></div>'+om.map(function(r){return '<div class="trow"><span class="fn">'+T(r[0])+'</span><span>'+T(r[1])+'</span></div>'}).join('')+'</section>'
+   +'<h2 style="margin-top:6px">'+T('Archiefdeelnemer: drie manieren')+'</h2><div class="opts">'+opt.map(function(o,i){return '<section class="opt'+(o[1]?' pick':'')+'"><header><span class="ok">'+(i+1)+'</span><h3>'+T(o[0])+'</h3>'+(o[1]?'<span class="pill p-green">'+T('Gekozen')+'</span>':'')+'</header><ul class="pm plus">'+o[2].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul><ul class="pm min">'+o[3].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></section>'}).join('')+'</div>'
+   +'<section class="tgrp"><header><b>'+T('Open standaarden')+'</b></header><div><ul>'+['Matrix, voor versleutelde en gefedereerde chat','ActivityStreams 2.0, als gelijkgetrokken vorm van een chatbericht','WebDAV, als enige schrijfingang naar de opslag','S3 met Object Lock, voor de objectopslag','MDTO, voor de metagegevens bij overbrenging','PDF/A-2, voor het gespreksverslag','ZGW API’s, voor de koppeling met zaken'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div></section></div></div>'}
+
+/* ---------- groeipad ---------- */
+var GP=[
+ {t:'Teams afvangen naar XENA',tv:'Kan nu, naast de huidige werkplek',lab:'Samen met de markt',out:true,see:'Niets. Teams werkt zoals altijd.',pf:'Meldpunt, brug, register voor chatberichten.',mk:'Goedkeuring en licenties voor de beschermde API van Microsoft.',ms:'Elk zakelijk Teams-bericht staat als kopie in XENA.'},
+ {t:'Nextcloud Talk voor zakelijke chat',tv:'Met de migratie van de netwerkschijven',see:'Een chat naast de bestanden, met het paneel van de Office Assistent.',pf:'Registerkoppeling voor Talk, naast die voor bestanden.',mk:'Niets: Talk is open source en zit in de stack.',ms:'Chatberichten aan de bron in het archief.'},
+ {t:'Afspraken over berichtenapps',tv:'Kan nu',see:'Duidelijke regels: werk in de chat van de gemeente. Wat toch via Signal gaat, leg je vast.',pf:'De MAIA-app met het deelmenu.',mk:'Niets.',ms:'Zakelijke berichten op telefoons zijn terug te vinden.'},
+ {t:'WhatsApp Business voor inwonercontact',tv:'Met de klantcontactomgeving',lab:'Samen met de markt',out:true,see:'Antwoorden in de klantcontactomgeving, niet op de eigen telefoon.',pf:'Brug voor de Cloud API, anonimiseren voor de Woo.',mk:'Een leverancier van de Cloud API, of rechtstreeks bij Meta.',ms:'Elk gesprek met een inwoner is volledig en vindbaar.'},
+ {t:'Matrix met archiefdeelnemer',tv:'Met MijnBureau',lab:'Samen met andere overheden',out:true,see:'Versleutelde chat met collega’s van andere overheden, ook in Duitsland en Frankrijk.',pf:'Archiefdienst en sleutelbeheer.',mk:'Samen met MijnBureau, openDesk en LaSuite, via het samenwerkingsverband.',ms:'Gefedereerde chat, gearchiveerd aan de kant van de gemeente.'},
+ {t:'Teams als bron afbouwen',tv:'Bestuurlijke keuze',see:'Werk gaat via Talk of Matrix. Teams blijft voor overleg met wie alleen Teams heeft.',pf:'Niets nieuws: het archief staat er al.',mk:'Niets.',ms:'Het archief verhuist niet; alleen de bron verandert.'}];
+function groeiView(){
+  return '<div class="win"><div class="page"><h2>'+T('Van kopie naar bron, in zes stappen')+'</h2><p class="lead">'+T('Concept. Dit is een volgorde, geen planning. Register en objectopslag staan er vanaf stap 1 en veranderen daarna niet meer: het archief verhuist nooit, alleen de bron van de berichten verandert.')+'</p>'
+    +'<div class="gsteps">'+GP.map(function(x,k){return '<section class="gstep'+(x.out?' out':'')+'"><div><div class="gnum">'+T('stap {0}',k+1)+' · <span class="pill '+(x.out?'p-amber':'p-blue')+'">'+T(x.lab||'Zelf te doen')+'</span></div><h3>'+T(x.t)+'</h3><div class="when">'+T(x.tv)+'</div></div>'
+      +'<dl><div><dt>'+T('Wat de medewerker merkt')+'</dt><dd>'+T(x.see)+'</dd></div><div><dt>'+T('Wat het platform moet kunnen')+'</dt><dd>'+T(x.pf)+'</dd></div><div><dt>'+T('Wat het van de markt vraagt')+'</dt><dd>'+T(x.mk)+'</dd></div></dl>'
+      +'<div class="gms"><span class="dia"></span><span>'+T(x.ms)+'</span></div></section>'}).join('')+'</div>'
+    +'<div class="gtwo"><section class="tgrp"><header><b>'+T('Waar het kan schuren')+'</b></header><div><ul>'
+    +['In stap 1 staat het origineel nog bij Microsoft. Dat is een tussenstap om te leren, geen eindbeeld.','Medewerkers kiezen de chat die werkt. Talk en Matrix moeten net zo prettig zijn als Teams, anders gaat het gesprek naar WhatsApp.','Een archiefdeelnemer is zichtbaar. Dat is de bedoeling, maar het vraagt uitleg aan collega’s van andere organisaties.','Vastleggen vanaf de telefoon hangt af van de medewerker. Afspraken en de assistent maken het makkelijk, niet vanzelf.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div></section>'
+    +'<section class="tgrp"><header><b>'+T('Verhouding tot Common Ground')+'</b></header><div><ul>'
+    +['MAIA registreert geen zaken. Het zaaksysteem blijft leidend; MAIA legt de koppeling vast als kenmerk, via de Zaken API.','Gegevens bij de bron: het bericht staat één keer, en wie het nodig heeft, verwijst ernaar.','Open standaarden aan elke ingang: Matrix, WebDAV, S3. Elke chatomgeving is te vervangen zonder het archief te raken.'].map(function(x){return '<li>'+T(x)+'</li>'}).join('')+'</ul></div></section></div></div></div>'}
+
+/* ---------- colofon ---------- */
+function colofonHtml(){
+  var i=0,r=function(dt,dd){var o='<dt class="cl" style="--i:'+i+'">'+T(dt)+'</dt><dd class="cl" style="--i:'+i+'">'+dd+'</dd>';i++;return o};
+  var sp=[[12,78,0],[28,88,1.4],[46,82,2.6],[63,90,.8],[80,80,3.4],[92,70,2]].map(function(x){return '<span class="sp" style="left:'+x[0]+'%;top:'+x[1]+'%;animation-delay:'+x[2]+'s"></span>'}).join('');
+  return '<div class="dlg colo" role="dialog" aria-modal="true" aria-labelledby="clt"><div class="cfx"><div class="aur"></div>'+sp+'</div><div class="cin"><div class="chead"><div class="seal" aria-hidden="true"><svg class="ring" viewBox="0 0 96 96"><defs><path id="clc" d="M48,48 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs><circle cx="48" cy="48" r="46" fill="none" stroke="var(--line)" stroke-width="1"/><text><textPath href="#clc" textLength="236" lengthAdjust="spacing">MATRIX · WEBDAV · S3 · EUPL · XENA · MAIA · </textPath></text></svg>'
+    +'<svg class="core" viewBox="0 0 24 24"><path class="draw" d="M4.5 5.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H10l-4.5 3.5v-3.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/><path class="draw" d="M8 10h8M8 13h5" fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-linecap="round"/></svg></div>'
+    +'<div><h2 id="clt" class="ct">'+T('Colofon')+'</h2><div class="csub">MAIA · Messaging Archive &amp; Information Assistant</div><div class="csub">'+T('Interactieve demo, versie {0}',DEMO.v)+' · '+esc(DEMO.d)+'</div></div></div><div class="mb"><dl>'
+    +r('Gemaakt door','<span>Erik Hoekstra</span><small>'+T('Programma-architect en senior consultant')+'</small><small>'+T('Afdeling i-Ontwikkeling, Gemeente Haarlem')+'</small>')
+    +r('Met assistentie van','<span>Claude Opus 5.5</span><small>Anthropic</small>')
+    +r('Contact','<span>ehoekstra@haarlem.nl</span><span>erik@erikhoekstra.com</span>')
+    +r('Ten behoeve van','<ul><li>'+T('De vraag of chatberichten in een soeverein platform als XENA kunnen, ook vanuit Teams')+'</li><li>'+T('Het Common Ground-team en het samenwerkingsverband OWC')+'</li><li>'+T('Medewerkers, informatiebeheerders en architecten van de gemeenten Haarlem en Zandvoort')+'</li></ul>')
+    +r('Naam','<span>MAIA: Messaging Archive &amp; Information Assistant</span><small>'+T('Chatarchivering binnen XENA')+'</small>')
+    +r('Achtergrond','<span>'+T('XENA, archiefwaardige opslag voor de medewerker')+'</span><small>'+T('De architectuurvisie waarop deze demo is gebaseerd; naast MIRA, TINA en ELSA')+'</small>')
+    +r('Copyright','<span>© 2026 '+T('Gemeente Haarlem')+'</span>')
+    +r('Licentie','<span>'+T('Vrij te gebruiken, aan te passen en te verspreiden onder de European Union Public Licence (EUPL) 1.2.')+'</span><a href="https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12" target="_blank" rel="noopener">'+T('Tekst van de licentie')+'</a>')
+    +'</dl><div class="cnote cl" style="--i:'+i+'">'+T('Een demo, geen product. Alle voorbeeldgegevens zijn verzonnen: personen, organisaties, telefoonnummers, dossiers en zaaknummers bestaan niet. Productnamen staan er om herkenbaar te zijn; de demo is niet door de leveranciers gemaakt of goedgekeurd.')+'</div></div>'
+    +'<div class="cfoot"><button type="button" class="btn pri" data-act="coloX">'+T('Sluiten')+'</button></div></div></div>'}
+function modal(){var L=document.getElementById('layer');if(S.colo){if(!L.querySelector('.colo')){L.innerHTML=colofonHtml();L.querySelector('[data-act="coloX"]').focus()}return}L.innerHTML=''}
+
+/* ---------- weergave ---------- */
+var VIEWS=[['chat','Gesprekken'],['kan','Kanalen'],['arch','Architectuur'],['tech','Techniek'],['groei','Groeipad']];
+function render(){CONV.forEach(auto);var n=cnt();
+  document.getElementById('top').innerHTML='<div class="ttl"><h1>MAIA<small>Messaging Archive &amp; Information Assistant</small></h1><div class="sub">'+T('Chatberichten archiveren in XENA: uit elk kanaal in hetzelfde register, met de assistent naast het gesprek.')+' <span>'+T('Versie {0}',DEMO.v)+'</span> · <span>'+esc(DEMO.d)+'</span> · <button type="button" class="linkbtn" data-act="colofon">'+T('Colofon')+'</button></div></div>'
+    +'<div class="seg" role="group" aria-label="'+T('Weergave')+'">'+VIEWS.map(function(v){return '<button type="button" data-act="view" data-v="'+v[0]+'" aria-pressed="'+(S.view===v[0])+'">'+T(v[1])+'</button>'}).join('')+'</div>'
+    +'<select class="lang" id="lang" aria-label="Taal / Language">'+Object.keys(LANGS).filter(function(l){return l==='nl'||I18N[l]}).map(function(l){return '<option value="'+l+'"'+(l===LANG?' selected':'')+'>'+LANGS[l]+'</option>'}).join('')+'</select>';
+  document.getElementById('regie').innerHTML='<b>'+T('Demo')+'</b><span>'+T('Spring vooruit in de tijd om te zien wat er na tien dagen gebeurt.')+'</span><div class="seg" role="group" aria-label="'+T('Tijd')+'">'+[[0,'Vandaag'],[4,'Over 4 dagen'],[10,'Over 10 dagen']].map(function(d){return '<button type="button" data-act="skip" data-v="'+d[0]+'" aria-pressed="'+(S.skip===d[0])+'">'+T(d[1])+'</button>'}).join('')+'</div>'
+    +'<span>'+T('{0} gesprekken nog te scheiden',n.sort)+' · '+T('{0} ruimtes deels buiten het archief',n.arch)+' · '+T('{0} telefoongesprekken nog niet beoordeeld',n.c)+'</span>';
+  document.getElementById('win').innerHTML=({chat:chatView,kan:kanView,arch:archView,tech:techView,groei:groeiView})[S.view]();
+  document.getElementById('hood').innerHTML='<b>'+T('Onder de motorkap')+'</b><code>'+esc(S.wire)+'</code>';
+  document.getElementById('foot').innerHTML='<span>MAIA · '+T('demo versie {0}, {1}',DEMO.v,DEMO.d)+'</span><span>'+T('Onderdeel van XENA, naast de opslag, MIRA, TINA en ELSA.')+'</span><span>'+T('Alle voorbeeldgegevens zijn verzonnen.')+'</span>';
+  modal()}
+function w(s){S.wire=s}
+var wt=t;
+function capWire(c,m){var ch=CHB[c.ch],k=ch.k,st=mstate(c,m);
+  if(c.ch==='talk')return 'POST /ocs/v2.php/apps/spreed/api/v1/chat/… → 201 · Nextcloud → '+wt('register')+' '+m.pid+(st==='pers'?' · '+wt('versleuteld met jouw persoonlijke sleutel'):' · '+wt('objectopslag (S3, Object Lock)'));
+  if(k==='A2')return 'PUT /_matrix/client/v3/rooms/…/send/m.room.encrypted → 200 · '+(st==='arch'?wt('archiefdeelnemer ontvangt en ontsleutelt')+' · WebDAV PUT → Nextcloud → '+wt('register')+' '+m.pid:wt('geen archiefdeelnemer in deze ruimte: niet in het archief'));
+  if(c.ch==='teams')return 'POST /chats/…/messages → 201 · Graph change notification → '+wt('brug')+' → Nextcloud → '+wt('register')+' '+m.pid+' ('+wt('kopie')+')';
+  if(c.ch==='slack')return 'chat.postMessage → ok · Events API message → '+wt('brug')+' → Nextcloud → '+wt('register')+' '+m.pid+' ('+wt('kopie')+')';
+  if(c.ch==='wa')return 'POST /{phone-number-id}/messages (Cloud API) → 200 · '+wt('brug')+' → Nextcloud → '+wt('register')+' '+m.pid+' ('+wt('kopie')+')';
+  return 'Signal: '+wt('verstuurd vanaf het toestel')+' · '+wt('niet in het archief tot je het vastlegt')}
+var A={
+  view:function(e){S.view=e.dataset.v;w(S.view==='chat'?capWire(BY[S.sel],lastMsg(BY[S.sel])):S.view==='kan'?wt('Vier klassen, één register'):S.view==='arch'?wt('Eén object in de opslag, vier soorten aanvoer'):S.view==='tech'?wt('Elke aanvoer eindigt in een WebDAV-schrijfactie in Nextcloud'):wt('Het archief verhuist nooit; alleen de bron verandert'));render()},
+  ch:function(e){S.ch=e.dataset.v;S.sel=convs(S.ch)[0].id;S.pick={};if(S.anon&&S.anon.indexOf('ok:')<0)S.anon=null;var c=BY[S.sel];w(CHB[S.ch].n+' · '+wt(CHB[S.ch].cap));render()},
+  sel:function(e){S.sel=e.dataset.id;S.pick={};S.pm='ges';if(S.anon!==S.sel)S.anon=null;var c=BY[S.sel];w('GET /register/gesprekken/'+c.gid+' → '+wt('{0} berichten in het archief',c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length));render()},
+  go:function(e){var c=BY[e.dataset.id];S.ch=c.ch;A.sel(e)},
+  pm:function(e){S.pm=e.dataset.v;render()},
+  pane:function(){S.pane=!S.pane;render()},
+  skip:function(e){S.skip=+e.dataset.v;w(S.skip?wt('Demo: {0} dagen later',S.skip)+' · '+wt('MAIA zet niet-gescheiden gesprekken na tien dagen op zakelijk'):'—');render()},
+  aard:function(e){var c=BY[S.sel],v=e.dataset.v||null;c.aard=v;c.auto=false;
+    if(v==='persoonlijk'){c.hist.push(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk':'Aangemerkt als persoonlijk en versleuteld');w(CHB[c.ch].k==='C'?wt('Register: gesprek beoordeeld als persoonlijk · niets vastgelegd'):'PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: persoonlijk')+' · '+wt('berichten versleuteld met jouw persoonlijke sleutel')+' · '+wt('buiten het Woo-zoekbereik'));toast(t(CHB[c.ch].k==='C'?'Gemarkeerd als persoonlijk. Er wordt niets vastgelegd.':'Persoonlijk. Alleen jij kunt de berichten in het archief lezen.'))}
+    else if(v==='zakelijk'){c.hist.push('Aangemerkt als zakelijk');w('PROPPATCH '+wt('register')+' '+c.gid+' → '+wt('aard: zakelijk')+' · '+wt('bewaartermijn vastgelegd')+' · '+wt('Object Lock zodra de bedenktijd voorbij is'));toast(t('Vastgelegd als zakelijk.'))}
+    else{c.hist.push('Opnieuw te beoordelen');w('—')}
+    render()},
+  invite:function(){var c=BY[S.sel];c.arch=true;c.archFrom=c.msgs.length;addMsg(c,{w:'arc',at:fmtT(now()),tx:'Archief · Gemeente Haarlem doet mee aan deze ruimte. Nieuwe berichten worden gearchiveerd.',sys:true});c.hist.push('Archiefdeelnemer uitgenodigd');
+    w('POST /_matrix/client/v3/rooms/…/invite {"user_id":"@archief:haarlem.gemeente.org"} → 200 · '+wt('lid van de ruimte, zichtbaar voor iedereen')+' · '+wt('sleutels in de sleutelkluis'));toast(t('De archiefdeelnemer doet mee. Nieuwe berichten komen in het archief; eerdere berichten kan hij niet lezen.'));render()},
+  capprev:function(){var c=BY[S.sel],n=0;c.msgs.forEach(function(m){if(mstate(c,m)==='none'){m.cap=true;m.via='client';n++}});c.hist.push('Eerdere berichten vastgelegd vanaf de client');
+    w(wt('Client ontsleutelt {0} berichten met de eigen sleutels',n)+' · '+wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' · '+wt('herkomst: vastgelegd door {0}',ME.name));toast(t('{0} eerdere berichten vastgelegd.',n));render()},
+  capsel:function(){var c=BY[S.sel],L=picked(c).filter(function(m){return mstate(c,m)==='none'}),k=CHB[c.ch].k;L.forEach(function(m){m.cap=true;m.via=k==='C'?'share':'client'});if(k==='C'&&!c.aard)c.aard='zakelijk';
+    c.hist.push(k==='C'?'Selectie vastgelegd via het deelmenu, met verklaring':'Selectie vastgelegd vanaf de client');S.pick={};
+    w((k==='C'?wt('Deelmenu → MAIA-app')+' · ':'')+wt('via de integratielaag')+' · WebDAV PUT → Nextcloud → '+wt('register')+' nl.haarlem.io:'+hex(4,L.length*91+7)+'-… · '+wt('{0} berichten in één informatieobject',L.length)+(k==='C'?' · '+wt('verklaring van {0}',ME.name):''));toast(t('{0} berichten vastgelegd als informatieobject.',L.length));render()},
+  clr:function(){S.pick={};render()},
+  sugz:function(){var c=BY[S.sel];link(c,'zaak',c.sug.z)},
+  unl:function(e){var c=BY[S.sel],k=e.dataset.k,v=e.dataset.v;if(k==='zaak'){c.zaak='';w('DELETE /zaken/api/v1/zaakinformatieobjecten/… → 204 · '+wt('kenmerk verwijderd uit het register'))}else{c.doss=c.doss.filter(function(d){return d!==v});w(wt('Register: verwijzing {0} → {1} ingetrokken',v,c.gid))}c.hist.push('Ontkoppeld');toast(t('Ontkoppeld van {0}.',v));render()},
+  vsl:function(){var c=BY[S.sel],n=c.msgs.filter(function(m){return mstate(c,m)==='arch'}).length;c.vsl=now();c.vsl_n=n;c.hist.push('Gespreksverslag gemaakt');
+    w('GET /register/gesprekken/'+c.gid+'/berichten → '+n+' · '+wt('weergave als PDF/A-2')+' · '+wt('waarmerk namens de gemeente')+' · '+wt('relatie naar elk bericht, geen kopie'));toast(t('Gespreksverslag gemaakt en gewaarmerkt.'));render()},
+  anon:function(){var c=BY[S.sel];S.anon=S.anon===c.id?null:c.id;if(S.anon)w(wt('Voorbeeld van anonimiseren')+' · '+wt('naam, telefoonnummer en adres van de inwoner')+' · '+wt('nog niet bevestigd'));render()},
+  anonok:function(){var c=BY[S.sel];c.anonOk=true;c.hist.push('Anonimiseren bevestigd');w('POST /register/'+c.gid+'/weergaven {"soort":"geanonimiseerd"} → 201 · '+wt('origineel ongewijzigd'));toast(t('Bevestigd. De geanonimiseerde weergave is klaar voor de Woo.'));render()},
+  send:function(){var f=document.getElementById('cmp'),v=(f&&f.value||'').trim(),c=BY[S.sel];if(!v){if(f)f.focus();return}
+    var m=addMsg(c,{w:'me',at:fmtT(now()),tx:v,lit:true});w(capWire(c,m));render();var g=document.getElementById('cmp');if(g)g.focus();var L=document.querySelector('.msgs');if(L)L.scrollTop=L.scrollHeight},
+  ah:function(e){S.ah=+e.dataset.i;w(wt(SEQ[S.ah].t)+' · '+wt('{0} stappen',SEQ[S.ah].s.length));render()},
+  colofon:function(){S.colo=true;render()},
+  coloX:function(){S.colo=false;render()}
+};
+function addMsg(c,m){var i=c.msgs.length;m.id=c.id+'-'+i;m.n=i;m.pid=pidOf(c.id,i);c.msgs.push(m);return m}
+function link(c,k,v){if(!v)return;if(k==='zaak'){c.zaak=v;c.hist.push('Gekoppeld aan een zaak');w('POST /zaken/api/v1/zaakinformatieobjecten → 201 · '+wt('zaak {0} als kenmerk in het register',v)+' · '+wt('het zaaksysteem blijft leidend'));toast(t('Gekoppeld aan zaak {0}.',v))}
+  else{if(c.doss.indexOf(v)<0)c.doss.push(v);c.hist.push('Opgenomen in een dossier');w(wt('Register: verwijzing {0} → {1}',v,c.gid)+' · '+wt('geen kopie'));toast(t('Opgenomen in dossier {0}.',v))}render()}
+document.addEventListener('click',function(ev){if(ev.target.id==='layer'&&S.colo){S.colo=false;render();return}
+  var e=ev.target.closest&&ev.target.closest('[data-act]');if(!e||e.disabled)return;var f=A[e.dataset.act];if(f)f(e)});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&S.colo){S.colo=false;render();return}
+  if(ev.key==='Enter'&&ev.target.id==='cmp'){ev.preventDefault();A.send()}});
+document.addEventListener('change',function(ev){var e=ev.target;
+  if(e.id==='lang'){setLang(e.value,true);render();return}
+  if(e.dataset&&e.dataset.pick){if(e.checked)S.pick[e.dataset.pick]=true;else delete S.pick[e.dataset.pick];render();return}
+  if(e.dataset&&e.dataset.f){var c=BY[S.sel],k=e.dataset.f,v=e.value;if(!v)return;
+    if(k==='pd'){var L=picked(c);c.hist.push('Selectie opgenomen in een dossier');S.pick={};w(wt('Register: dossier {0} verwijst naar {1} berichten',v,L.length)+' · '+L.map(function(m){return m.pid}).slice(0,2).join(', ')+(L.length>2?', …':'')+' · '+wt('geen kopie'));toast(t('{0} berichten opgenomen in dossier {1}.',L.length,v));render();return}
+    link(c,k==='zaak'?'zaak':'dos',v)}});
+var EXTRA=['Na tien dagen automatisch zakelijk','Aangemerkt als persoonlijk en versleuteld','Gemarkeerd als persoonlijk','Aangemerkt als zakelijk','Opnieuw te beoordelen','Archiefdeelnemer uitgenodigd','Eerdere berichten vastgelegd vanaf de client','Selectie vastgelegd via het deelmenu, met verklaring','Selectie vastgelegd vanaf de client','Ontkoppeld','Gespreksverslag gemaakt','Anonimiseren bevestigd','Gekoppeld aan een zaak','Opgenomen in een dossier','Selectie opgenomen in een dossier','telefoonnummer','naam','adres'];
+window.__maia={strings:function(){var o=EXTRA.slice();CH.forEach(function(c){o.push(KL[c.k],c.gen,c.orig,c.cap,c.vol,c.kb,c.where)});
+  CONV.forEach(function(c){if(!c.lit)o.push(c.ti);o.push(c.sub);if(c.sug)o.push(c.sug.why);c.msgs.forEach(function(m){if(!m.lit&&!c.lit||m.sys)o.push(m.tx);if(m.ed)o.push(m.ed)})});
+  Object.keys(PP).forEach(function(k){if(PP[k][1])o.push(PP[k][1])});ZAKEN.forEach(function(r){o.push(r[1])});DOSSIERS.forEach(function(r){o.push(r[1],r[2])});
+  SEQ.forEach(function(q){o.push(q.t);o=o.concat(q.s)});GP.forEach(function(x){o.push(x.t,x.tv,x.see,x.pf,x.mk,x.ms);if(x.lab)o.push(x.lab)});VIEWS.forEach(function(v){o.push(v[1])});
+  Object.keys(STL).forEach(function(k){o.push(STL[k][0])});return o},state:S,conv:CONV};
+(function(){var l='';try{l=localStorage.getItem('maia.lang')||''}catch(e){}var h=(location.hash||'').slice(1).toLowerCase();if(LANGS[h])l=h;setLang(l||'nl')})();
+render();
+})();
+</script>
